@@ -6,6 +6,7 @@ const AboutSection        = lazy(() => import('../components/layout/AboutSection
 const ThemeSection        = lazy(() => import('../components/layout/ThemeSection'));
 const CommitteesSection   = lazy(() => import('../components/layout/CommitteesSection'));
 const WhySection          = lazy(() => import('../components/layout/WhySection'));
+const ResourcesSection    = lazy(() => import('../components/layout/ResourcesSection'));
 const VideoSection        = lazy(() => import('../components/layout/VideoSection'));
 const RegistrationSection = lazy(() => import('../components/layout/RegistrationSection'));
 const FAQSection          = lazy(() => import('../components/layout/FAQSection'));
@@ -34,6 +35,10 @@ const HomePage: React.FC = () => (
 
     <Suspense fallback={<SectionSkeleton />}>
       <WhySection />
+    </Suspense>
+
+    <Suspense fallback={<SectionSkeleton />}>
+      <ResourcesSection />
     </Suspense>
 
     <Suspense fallback={<SectionSkeleton />}>

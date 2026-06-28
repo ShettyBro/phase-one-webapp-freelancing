@@ -5,6 +5,18 @@ import { Menu, X } from 'lucide-react';
 import { NAV_LINKS } from '../../data/comun';
 
 /**
+ * Maps each nav label to the section ID it represents on the page.
+ * "Resources" maps to #registration until a dedicated /resources page is built.
+ */
+const SECTION_MAP: { label: string; sectionId: string }[] = [
+  { label: 'Home',       sectionId: '' },
+  { label: 'About',      sectionId: 'about' },
+  { label: 'Committees', sectionId: 'committees' },
+  { label: 'Resources',  sectionId: 'resources' },
+  { label: 'Contact',    sectionId: 'contact' },
+];
+
+/**
  * CoMUN 2026 — Navbar (matches client design)
  * ─ Fully transparent background at all times
  * ─ Nav links enclosed in a pill-shaped gold-bordered container (left side)
@@ -13,39 +25,40 @@ import { NAV_LINKS } from '../../data/comun';
  * ─ Mobile hamburger drawer
  */
 const Navbar: React.FC = () => {
-  const [open, setOpen]           = useState(false);
+  const [open, setOpen]             = useState(false);
   const [activeLink, setActiveLink] = useState('Home');
-  const location                  = useLocation();
-  const mobileRef                 = useRef<HTMLDivElement>(null);
+  const location                    = useLocation();
+  const mobileRef                   = useRef<HTMLDivElement>(null);
 
-  // Track which section is in view for active highlight
+  // ── Scroll-position based active section tracker ────────────────
+
   useEffect(() => {
-    const sections = [
-      { id: 'root',         label: 'Home' },
-      { id: 'about',        label: 'About' },
-      { id: 'committees',   label: 'Committees' },
-      { id: 'resources',    label: 'Resources' },
-      { id: 'contact',      label: 'Contact' },
-    ];
+    const NAVBAR_HEIGHT  = 80;
+    const TRIGGER_OFFSET = NAVBAR_HEIGHT + window.innerHeight * 0.25;
 
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const match = sections.find(s => s.id === entry.target.id);
-            if (match) setActiveLink(match.label);
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
+    const onScroll = () => {
+      const scrollY = window.scrollY;
 
-    sections.forEach(s => {
-      const el = s.id === 'root' ? document.getElementById('root') : document.getElementById(s.id);
-      if (el) observer.observe(el);
-    });
+      if (scrollY < 60) {
+        setActiveLink('Home');
+        return;
+      }
 
-    return () => observer.disconnect();
+      let detected = 'Home';
+      for (const { label, sectionId } of SECTION_MAP) {
+        if (!sectionId) continue;
+        const el = document.getElementById(sectionId);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top + scrollY - TRIGGER_OFFSET <= scrollY) {
+          detected = label;
+        }
+      }
+      setActiveLink(detected);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => { setOpen(false); }, [location]);
