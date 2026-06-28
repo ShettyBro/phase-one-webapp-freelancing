@@ -22,50 +22,42 @@ const HeroSection: React.FC = () => {
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden">
 
-      {/* ── Background ──────────────────────────────────────────────
-          Slightly lighter navy so the teal dove can be seen against it.
-          The dove is teal (#5BB8D4) — background must not be same hue.
-          Using a very dark warm-tinted charcoal so the cool teal shows.
+      {/* ── Background Photo ─────────────────────────────────────────
+          The UN General Assembly Hall — sets the diplomatic stage.
+          A very slow Ken-Burns drift keeps it feeling alive (cinematic,
+          not distracting). The dark overlay below keeps text legible.
       ───────────────────────────────────────────────────────────── */}
-      <div
-        className="absolute inset-0 -z-20"
-        style={{ background: '#0c0e14' }}   /* dark warm charcoal-black */
+      <motion.div
+        className="absolute inset-0 -z-20 bg-comun-black"
+        style={{
+          backgroundImage: 'url(/un-assembly.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 42%',
+        }}
+        initial={{ scale: 1.06, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ scale: { duration: 18, ease: 'easeOut' }, opacity: { duration: 1.6, ease: 'easeOut' } }}
+        aria-hidden="true"
       />
+
+      {/* ── Legibility Overlay ───────────────────────────────────────
+          Darkens the photo so the gold logo + title read clearly, with
+          a touch of warm gold glow behind the crest and a deep vignette.
+      ───────────────────────────────────────────────────────────── */}
       <div
         className="absolute inset-0 -z-10"
         style={{
           background: [
-            /* deep navy vignette edges */
-            'radial-gradient(ellipse 100% 100% at 50% 0%,   rgba(10,16,32,0.9)  0%, transparent 60%)',
-            'radial-gradient(ellipse 100% 100% at 50% 100%, rgba(8,12,22,0.95)  0%, transparent 60%)',
-            /* gold ambient centre glow */
-            'radial-gradient(ellipse 60% 50% at 50% 62%,   rgba(201,168,76,0.06) 0%, transparent 70%)',
+            /* warm gold halo behind the crest / title */
+            'radial-gradient(ellipse 50% 45% at 50% 42%, rgba(201,168,76,0.10) 0%, transparent 65%)',
+            /* top-to-bottom darkening — heavier at the edges for the navbar + CTAs */
+            'linear-gradient(180deg, rgba(6,11,24,0.86) 0%, rgba(6,11,24,0.5) 30%, rgba(6,11,24,0.55) 60%, rgba(6,11,24,0.9) 100%)',
+            /* corner vignette to frame the content */
+            'radial-gradient(ellipse 115% 100% at 50% 45%, transparent 42%, rgba(3,7,15,0.75) 100%)',
           ].join(','),
         }}
-      />
-
-      {/* ── Peace Dove Watermark ─────────────────────────────────────
-          Higher opacity (0.13) and NO desaturation so the teal shows.
-          Positioned to sit behind the title area, not the logo.
-      ───────────────────────────────────────────────────────────── */}
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none"
-        style={{ zIndex: 0, paddingTop: '12%' }}   /* shift dove down so it sits behind the text */
         aria-hidden="true"
-      >
-        <img
-          src="/dove_peace.png"
-          alt=""
-          style={{
-            width:  'clamp(420px, 62vw, 820px)',
-            height: 'auto',
-            opacity: 0.13,
-            filter:  'blur(0.5px) brightness(1.3)',  /* keep teal colour, just soften edges */
-            userSelect: 'none',
-            pointerEvents: 'none',
-          }}
-        />
-      </div>
+      />
 
       {/* ── Hero Content ─────────────────────────────────────────────
           pt-20 md:pt-24 → clears the fixed navbar.
@@ -73,20 +65,18 @@ const HeroSection: React.FC = () => {
       ───────────────────────────────────────────────────────────── */}
       <div
         className="relative flex flex-col items-center text-center px-4 sm:px-6 max-w-4xl mx-auto w-full"
-        style={{ zIndex: 2, paddingTop: '5.5rem' }}   /* 88px — clears h-20 navbar on desktop */
+        style={{ zIndex: 2, paddingTop: '4.5rem' }}   /* clears the fixed navbar */
       >
 
         {/* ────────────────────────────────────────────────────────────
-            LOGO — the star of the show.
-            h-44 → 176px | h-56 → 224px | h-64 → 256px
-            Let it breathe with a prominent gold drop-shadow.
+            LOGO — prominent but sized so the whole hero fits in 100vh.
         ──────────────────────────────────────────────────────────── */}
-        <motion.div {...fadeIn(0.05)} className="mb-6 md:mb-8">
+        <motion.div {...fadeIn(0.05)} className="mb-4 md:mb-5">
           <img
             src="/logo.png"
             alt="CoMUN 2026 Official Logo"
             style={{
-              height: 'clamp(180px, 22vw, 260px)',   /* big on all screen sizes */
+              height: 'clamp(118px, 13vw, 178px)',
               width:  'auto',
               objectFit: 'contain',
               display: 'block',
@@ -97,8 +87,8 @@ const HeroSection: React.FC = () => {
         </motion.div>
 
         {/* Eyebrow */}
-        <motion.div {...fadeUp(0.2)} className="mb-4">
-          <span className="inline-flex items-center gap-3 font-sans text-[11px] font-semibold tracking-[0.3em] uppercase text-comun-gold/80">
+        <motion.div {...fadeUp(0.2)} className="mb-3">
+          <span className="inline-flex items-center gap-3 font-sans text-[10px] sm:text-[11px] font-semibold tracking-[0.3em] uppercase text-comun-gold/80">
             <span className="w-6 h-px bg-comun-gold/40 inline-block" />
             Cottons Model United Nations
             <span className="w-6 h-px bg-comun-gold/40 inline-block" />
@@ -106,18 +96,16 @@ const HeroSection: React.FC = () => {
         </motion.div>
 
         {/* ────────────────────────────────────────────────────────────
-            Title — reduced from clamp(2.8rem,8vw,7rem) to a controlled
-            size that fits in 2 lines without wrapping at 100% zoom.
-            Max ~3.75rem so "COTTONS MODEL" + "UNITED NATIONS" each
-            fit on one line on a 1366px viewport.
+            Title — sized to fit two lines on a 1366px viewport at 100%.
         ──────────────────────────────────────────────────────────── */}
         <motion.h1
           {...fadeUp(0.35)}
-          className="font-serif-display font-semibold text-comun-white leading-tight mb-4"
+          className="font-serif-display font-semibold text-comun-white mb-3"
           style={{
-            fontSize:      'clamp(2rem, 4.2vw, 3.8rem)',
+            fontSize:      'clamp(1.7rem, 3.4vw, 3rem)',
             letterSpacing: '0.06em',
-            lineHeight:    '1.15',
+            lineHeight:    '1.12',
+            filter:        'drop-shadow(0 2px 14px rgba(0,0,0,0.7))',
           }}
         >
           <span className="block text-gold-gradient">COTTONS MODEL</span>
@@ -125,14 +113,14 @@ const HeroSection: React.FC = () => {
         </motion.h1>
 
         {/* Divider */}
-        <motion.div {...fadeIn(0.48)} className="mb-4">
-          <div className="w-36 h-px bg-gradient-to-r from-transparent via-comun-gold/55 to-transparent mx-auto" />
+        <motion.div {...fadeIn(0.48)} className="mb-3">
+          <div className="w-32 h-px bg-gradient-to-r from-transparent via-comun-gold/55 to-transparent mx-auto" />
         </motion.div>
 
         {/* Roman Year */}
         <motion.p
           {...fadeUp(0.55)}
-          className="font-serif-display text-lg md:text-xl font-light tracking-[0.45em] text-comun-gold/65 mb-3"
+          className="font-serif-display text-base md:text-lg font-light tracking-[0.45em] text-comun-gold/65 mb-2"
         >
           {CONFERENCE.romanYear}
         </motion.p>
@@ -140,7 +128,7 @@ const HeroSection: React.FC = () => {
         {/* Theme */}
         <motion.p
           {...fadeUp(0.64)}
-          className="font-serif-display text-base md:text-xl italic font-light text-comun-white/65 mb-2 tracking-wide"
+          className="font-serif-display text-base md:text-lg italic font-light text-comun-white/65 mb-2 tracking-wide"
         >
           "{CONFERENCE.theme}"
         </motion.p>
@@ -148,7 +136,7 @@ const HeroSection: React.FC = () => {
         {/* Dates */}
         <motion.p
           {...fadeUp(0.72)}
-          className="font-sans text-xs md:text-sm text-comun-muted tracking-[0.2em] uppercase mb-10"
+          className="font-sans text-xs md:text-sm text-comun-muted tracking-[0.2em] uppercase mb-6 md:mb-7"
         >
           {CONFERENCE.dates}
         </motion.p>

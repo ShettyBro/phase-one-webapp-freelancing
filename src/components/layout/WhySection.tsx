@@ -2,14 +2,14 @@ import React from 'react';
 import { FEATURES } from '../../data/comun';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
 import { FeatureCard } from '../ui/FeatureCard';
+import { DoveAccent } from '../ui/DoveAccent';
 
 const WhySection: React.FC = () => (
   <SectionContainer
     id="why"
-    className="bg-gradient-to-b from-comun-charcoal/50 to-comun-black relative"
+    className="bg-gradient-to-b from-comun-charcoal/50 to-comun-black"
+    decor={<DoveAccent position="right" opacity={0.045} />}
   >
-    <div className="ambient-orb w-[500px] h-[400px] bg-comun-navy/40 top-0 left-0 -translate-x-1/3" />
-
     <div className="relative z-10">
       <SectionHeader
         eyebrow="Why Participate"

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { REGISTRATION_TYPES } from '../../data/comun';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
+import { DoveAccent } from '../ui/DoveAccent';
 
 // ─── Registration Card ────────────────────────────────────────────────────
 interface RegCardProps {
@@ -98,10 +99,9 @@ const RegistrationCard: React.FC<RegCardProps> = ({ data, index }) => {
 const RegistrationSection: React.FC = () => (
   <SectionContainer
     id="registration"
-    className="bg-gradient-to-b from-comun-black to-comun-charcoal/50 relative"
+    className="bg-gradient-to-b from-comun-black to-comun-charcoal/50"
+    decor={<DoveAccent position="left" opacity={0.04} flip />}
   >
-    <div className="ambient-orb w-[600px] h-[400px] bg-comun-gold/4 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-
     <div className="relative z-10">
       <SectionHeader
         eyebrow="Registration"

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Clock } from 'lucide-react';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
+import { DoveAccent } from '../ui/DoveAccent';
 import { CONFERENCE } from '../../data/comun';
 
 const ContactSection: React.FC = () => {
@@ -43,10 +44,9 @@ const ContactSection: React.FC = () => {
   return (
     <SectionContainer
       id="contact"
-      className="bg-gradient-to-b from-comun-black to-comun-charcoal relative"
+      className="bg-gradient-to-b from-comun-black to-comun-charcoal"
+      decor={<DoveAccent position="right" opacity={0.05} />}
     >
-      <div className="ambient-orb w-[400px] h-[300px] bg-comun-navy/40 bottom-0 right-0 translate-x-1/4" />
-
       <div className="relative z-10">
         <SectionHeader
           eyebrow="Contact"

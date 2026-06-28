@@ -7,11 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Core palette
-        'comun-black':   '#080e18',
-        'comun-charcoal':'#0e1525',
-        'comun-navy':    '#0a1525',
-        'comun-navy-mid':'#122030',
+        // Core palette — navy-tinted darks that blend with the hero
+        'comun-black':   '#070e1d',
+        'comun-charcoal':'#0c1730',
+        'comun-navy':    '#0a1428',
+        'comun-navy-mid':'#122844',
         'comun-teal':    '#5BB8D4',
         'comun-gold':    '#C9A84C',
         'comun-gold-light': '#E2C27D',

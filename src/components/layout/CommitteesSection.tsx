@@ -3,15 +3,14 @@ import { motion } from 'framer-motion';
 import { COMMITTEES } from '../../data/comun';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
 import { CommitteeCard } from '../ui/CommitteeCard';
+import { DoveAccent } from '../ui/DoveAccent';
 
 const CommitteesSection: React.FC = () => (
   <SectionContainer
     id="committees"
-    className="bg-gradient-to-b from-comun-black to-comun-charcoal/50 relative"
+    className="bg-gradient-to-b from-comun-black to-comun-charcoal/50"
+    decor={<DoveAccent position="left" opacity={0.04} flip />}
   >
-    {/* Ambient */}
-    <div className="ambient-orb w-[400px] h-[300px] bg-comun-gold/4 bottom-0 right-0 translate-x-1/4" />
-
     <div className="relative z-10">
       <SectionHeader
         eyebrow="Committees"

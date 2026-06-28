@@ -9,6 +9,8 @@ interface SectionContainerProps {
   narrow?: boolean;
   /** Extra top/bottom padding variant */
   compact?: boolean;
+  /** Background decoration layer (e.g. <DoveAccent />), rendered behind content. */
+  decor?: React.ReactNode;
 }
 
 /**
@@ -20,16 +22,18 @@ export const SectionContainer: React.FC<SectionContainerProps> = ({
   children,
   narrow = false,
   compact = false,
+  decor,
 }) => {
-  const padding = compact ? 'py-16 md:py-20' : 'py-20 md:py-28 lg:py-36';
+  const padding = compact ? 'py-12 md:py-16' : 'py-16 md:py-20 lg:py-24';
   const maxW = narrow ? 'max-w-4xl' : 'max-w-7xl';
 
   return (
     <section
       id={id}
-      className={`relative ${padding} px-4 sm:px-6 lg:px-8 ${className}`}
+      className={`relative overflow-hidden ${padding} px-4 sm:px-6 lg:px-8 ${className}`}
     >
-      <div className={`${maxW} mx-auto`}>{children}</div>
+      {decor}
+      <div className={`relative z-10 ${maxW} mx-auto`}>{children}</div>
     </section>
   );
 };
@@ -52,7 +56,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
 
   return (
     <motion.div
-      className={`flex flex-col gap-4 mb-16 ${align}`}
+      className={`flex flex-col gap-3 mb-10 md:mb-12 ${align}`}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}

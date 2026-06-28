@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { STATS } from '../../data/comun';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
+import { DoveAccent } from '../ui/DoveAccent';
 
 // ─── Stat Card ────────────────────────────────────────────────────────────
 interface StatCardProps {
@@ -18,7 +19,7 @@ const StatCard: React.FC<StatCardProps> = ({ value, label, index }) => (
     transition={{ duration: 0.6, delay: 0.1 * index, ease: [0.22, 1, 0.36, 1] }}
     className="glass gold-border gold-border-hover flex flex-col items-center justify-center py-8 px-6 text-center"
   >
-    <span className="font-serif-display text-5xl md:text-6xl font-semibold text-gold-gradient leading-none mb-2">
+    <span className="font-serif-display text-4xl md:text-5xl font-semibold text-gold-gradient leading-none mb-2">
       {value}
     </span>
     <span className="font-sans text-xs font-medium tracking-[0.2em] uppercase text-comun-muted mt-1">
@@ -31,11 +32,9 @@ const StatCard: React.FC<StatCardProps> = ({ value, label, index }) => (
 const AboutSection: React.FC = () => (
   <SectionContainer
     id="about"
-    className="bg-gradient-to-b from-comun-black via-comun-navy/20 to-comun-black relative"
+    className="bg-gradient-to-b from-comun-black via-comun-navy/20 to-comun-black"
+    decor={<DoveAccent position="right" opacity={0.05} />}
   >
-    {/* Ambient glow */}
-    <div className="ambient-orb w-[500px] h-[500px] bg-comun-navy/40 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-
     <div className="relative z-10">
       <SectionHeader
         eyebrow="About CoMUN"
@@ -49,7 +48,7 @@ const AboutSection: React.FC = () => (
       />
 
       {/* Body Content */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-center mb-20">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-center mb-14">
 
         {/* Text Column */}
         <motion.div

@@ -6,7 +6,7 @@ import { CONFERENCE } from '../../data/comun';
  * Conference Theme section — large typographic statement for "Peace Over Power"
  */
 const ThemeSection: React.FC = () => (
-  <section className="relative py-24 md:py-36 overflow-hidden bg-comun-navy/30">
+  <section className="relative py-20 md:py-24 overflow-hidden bg-comun-navy/30">
     {/* Background layers */}
     <div className="absolute inset-0 bg-gradient-to-b from-comun-black via-comun-navy/60 to-comun-black" />
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.1)_0%,transparent_65%)]" />
@@ -19,6 +19,27 @@ const ThemeSection: React.FC = () => (
         style={{ top: `${pct}%`, background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)' }}
       />
     ))}
+
+    {/* Luminous peace dove — the thematic heart of this section */}
+    <motion.img
+      src="/dove_peace.png"
+      alt=""
+      aria-hidden="true"
+      initial={{ opacity: 0, scale: 0.94 }}
+      whileInView={{ opacity: 0.16, scale: 1, y: [0, -16, 0] }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{
+        opacity: { duration: 1.8, ease: 'easeOut' },
+        scale:   { duration: 1.8, ease: 'easeOut' },
+        y:       { duration: 10, repeat: Infinity, ease: 'easeInOut' },
+      }}
+      className="pointer-events-none select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0"
+      style={{
+        width: 'clamp(420px, 58vw, 820px)',
+        height: 'auto',
+        filter: 'brightness(1.15) drop-shadow(0 0 80px rgba(91,184,212,0.35))',
+      }}
+    />
 
     <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
@@ -57,7 +78,7 @@ const ThemeSection: React.FC = () => (
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
           className="font-serif-display font-semibold text-gold-shimmer leading-tight"
-          style={{ fontSize: 'clamp(3.5rem, 10vw, 9rem)' }}
+          style={{ fontSize: 'clamp(2.8rem, 7.5vw, 6.5rem)' }}
         >
           Peace
         </motion.h2>
@@ -82,14 +103,14 @@ const ThemeSection: React.FC = () => (
         </motion.div>
       </div>
 
-      <div className="overflow-hidden mb-14">
+      <div className="overflow-hidden mb-10">
         <motion.h2
           initial={{ y: '100%', opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-          className="font-serif-display font-semibold text-comun-white/20 leading-tight"
-          style={{ fontSize: 'clamp(3.5rem, 10vw, 9rem)' }}
+          className="font-serif-display font-semibold text-comun-white/25 leading-tight"
+          style={{ fontSize: 'clamp(2.8rem, 7.5vw, 6.5rem)' }}
         >
           Power
         </motion.h2>
