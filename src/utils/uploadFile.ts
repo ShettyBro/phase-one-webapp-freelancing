@@ -52,9 +52,6 @@ export function validateFile(kind: UploadKind, file: File): string | null {
 export async function uploadFile(kind: UploadKind, file: File): Promise<UploadedRef> {
   const contentType = file.type || 'application/octet-stream';
 
-  // DEBUG — log what we are signing
-  console.log('[upload] Requesting presign', { kind, fileName: file.name, contentType, size: file.size });
-
   const { data } = await api.post('/uploads-sign', {
     kind,
     fileName: file.name,
@@ -66,14 +63,6 @@ export async function uploadFile(kind: UploadKind, file: File): Promise<Uploaded
     throw new Error('Could not prepare the upload.');
   }
 
-  // DEBUG — log the presigned URL (first 120 chars) and the headers we will send.
-  // The URL must be path-style: https://<accountId>.r2.cloudflarestorage.com/<bucket>/<key>
-  // If it looks like https://<bucket>.<accountId>.r2.cloudflarestorage.com/... it is virtual-
-  // hosted style, which means forcePathStyle is not set on the backend S3Client.
-  console.log('[upload] Presigned URL (truncated):', (data.uploadUrl as string).slice(0, 120) + '…');
-  console.log('[upload] Object key:', data.key);
-  console.log('[upload] PUT headers:', { 'Content-Type': contentType });
-
   // IMPORTANT: send ONLY Content-Type. Adding any extra header (e.g. Authorization,
   // x-amz-*) that was not included in the signature will cause R2 to reject the request.
   const put = await fetch(data.uploadUrl as string, {
@@ -82,13 +71,10 @@ export async function uploadFile(kind: UploadKind, file: File): Promise<Uploaded
     body: file,
   });
 
-  // DEBUG — log R2 response
-  console.log('[upload] R2 PUT response status:', put.status, put.statusText);
   if (!put.ok) {
-    const body = await put.text().catch(() => '(no body)');
-    console.error('[upload] R2 PUT error body:', body);
     throw new Error('Upload failed. Please try again.');
   }
 
   return { key: data.key, fileName: file.name, mimeType: contentType, size: file.size };
 }
+

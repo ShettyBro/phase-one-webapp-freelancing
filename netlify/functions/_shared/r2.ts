@@ -21,14 +21,6 @@ let _client: S3Client | null = null;
 function client(): S3Client {
   if (!_client) {
     const endpoint = process.env.R2_ENDPOINT || '';
-    const accountId = process.env.R2_ACCOUNT_ID || '';
-    // DEBUG — log R2 client config on first init
-    console.log('[R2] Initialising S3Client', {
-      endpoint,
-      accountId,
-      bucket: R2_BUCKET,
-      accessKeyId: (process.env.R2_ACCESS_KEY_ID || '').slice(0, 6) + '…',
-    });
     _client = new S3Client({
       region: 'auto',
       endpoint,
@@ -69,19 +61,12 @@ export async function presignUpload(
   contentType: string,
   expiresIn = 300,
 ): Promise<string> {
-  // DEBUG — log what we are about to sign
-  console.log('[R2] presignUpload', { bucket: R2_BUCKET, key, contentType, expiresIn });
-
-  const url = await getSignedUrl(
+  return getSignedUrl(
     client(),
     // ContentType deliberately omitted — see JSDoc above
     new PutObjectCommand({ Bucket: R2_BUCKET, Key: key }),
     { expiresIn },
   );
-
-  // DEBUG — log the generated URL (first 120 chars to avoid logging secrets)
-  console.log('[R2] presigned PUT URL (truncated):', url.slice(0, 120) + '…');
-  return url;
 }
 
 /** Presigned GET URL for downloading a stored object (optionally forcing a filename). */

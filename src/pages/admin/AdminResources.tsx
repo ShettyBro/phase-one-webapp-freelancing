@@ -10,9 +10,18 @@ type Resource = any;
 
 interface UploadedRef { key: string; fileName: string; mimeType: string; size: number; }
 
-async function uploadResourceFile(file: File): Promise<UploadedRef> {
+type ResourceSubcategory = 'brochures' | 'guides' | 'templates' | 'others';
+
+const SUBCATEGORY_OPTIONS: { value: ResourceSubcategory; label: string }[] = [
+  { value: 'brochures',  label: 'Brochures'  },
+  { value: 'guides',     label: 'Guides'     },
+  { value: 'templates',  label: 'Templates'  },
+  { value: 'others',     label: 'Others'     },
+];
+
+async function uploadResourceFile(file: File, subcategory: ResourceSubcategory): Promise<UploadedRef> {
   const contentType = file.type || 'application/octet-stream';
-  const { data } = await api.post('/resource-upload-sign', { fileName: file.name, contentType, size: file.size });
+  const { data } = await api.post('/resource-upload-sign', { fileName: file.name, contentType, size: file.size, subcategory });
   const put = await fetch(data.uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body: file });
   if (!put.ok) throw new Error('Upload failed.');
   return { key: data.key, fileName: file.name, mimeType: contentType, size: file.size };
@@ -31,6 +40,7 @@ const AdminResources: React.FC = () => {
   const [rTitle, setRTitle] = useState('');
   const [rDesc, setRDesc] = useState('');
   const [rCat, setRCat] = useState('');
+  const [rSub, setRSub] = useState<ResourceSubcategory>('others');
   const [rFile, setRFile] = useState<File | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,9 +71,9 @@ const AdminResources: React.FC = () => {
     if (!rCat || !rTitle.trim() || !rFile) { setError('Category, title and file are required.'); return; }
     setCreating(true);
     try {
-      const file = await uploadResourceFile(rFile);
+      const file = await uploadResourceFile(rFile, rSub);
       await api.post('/admin-resources', { categoryId: rCat, title: rTitle.trim(), description: rDesc.trim(), file });
-      setRTitle(''); setRDesc(''); setRCat(''); setRFile(null);
+      setRTitle(''); setRDesc(''); setRCat(''); setRSub('others'); setRFile(null);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create resource.');
@@ -75,10 +85,10 @@ const AdminResources: React.FC = () => {
     setResources((prev) => prev.map((r) => (r.id === id ? { ...r, isEnabled: !isEnabled } : r)));
   };
 
-  const replaceFile = async (id: string, file: File) => {
+  const replaceFile = async (id: string, file: File, subcategory: ResourceSubcategory = 'others') => {
     setBusy(true);
     try {
-      const uploaded = await uploadResourceFile(file);
+      const uploaded = await uploadResourceFile(file, subcategory);
       await api.patch('/admin-resources', { file: uploaded }, { params: { id } });
       await load();
     } finally { setBusy(false); }
@@ -115,6 +125,9 @@ const AdminResources: React.FC = () => {
           <select value={rCat} onChange={(e) => setRCat(e.target.value)} className="form-input">
             <option value="" disabled>Select category</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <select value={rSub} onChange={(e) => setRSub(e.target.value as ResourceSubcategory)} className="form-input">
+            {SUBCATEGORY_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
           <input value={rTitle} onChange={(e) => setRTitle(e.target.value)} placeholder="Title" className="form-input" />
           <input value={rDesc} onChange={(e) => setRDesc(e.target.value)} placeholder="Description (optional)" className="form-input sm:col-span-2" />

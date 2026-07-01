@@ -13,8 +13,8 @@ interface SignRequest {
 }
 
 const RULES: Record<UploadKind, { prefix: string; mimeTypes: string[]; maxBytes: number }> = {
-  ID_PROOF: { prefix: 'id-proofs', mimeTypes: ID_PROOF.mimeTypes, maxBytes: ID_PROOF.maxBytes },
-  SPREADSHEET: { prefix: 'spreadsheets', mimeTypes: SPREADSHEET.mimeTypes, maxBytes: SPREADSHEET.maxBytes },
+  ID_PROOF:    { prefix: 'individual/ids',         mimeTypes: ID_PROOF.mimeTypes,    maxBytes: ID_PROOF.maxBytes },
+  SPREADSHEET: { prefix: 'institution/spreadsheets', mimeTypes: SPREADSHEET.mimeTypes, maxBytes: SPREADSHEET.maxBytes },
 };
 
 /**
