@@ -10,20 +10,23 @@ import { AdminAuthProvider } from './context/AdminAuthContext';
 import { RequireAdmin } from './components/admin/RequireAdmin';
 import { useScrollProgress } from './hooks/useScroll';
 
+
+
+
 // Public pages
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const RetrievePage = lazy(() => import('./pages/RetrievePage'));
 
 // Admin pages
-const AdminLayout        = lazy(() => import('./components/admin/AdminLayout'));
-const AdminLogin         = lazy(() => import('./pages/admin/AdminLogin'));
-const AdminDashboard     = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminRegistrations = lazy(() => import('./pages/admin/AdminRegistrations'));
-const AdminResources     = lazy(() => import('./pages/admin/AdminResources'));
-const AdminMessages      = lazy(() => import('./pages/admin/AdminMessages'));
-const AdminSettings      = lazy(() => import('./pages/admin/AdminSettings'));
-const AdminLogs          = lazy(() => import('./pages/admin/AdminLogs'));
-const AdminAdmins        = lazy(() => import('./pages/admin/AdminAdmins'));
+const AdminResources = lazy(() => import('./pages/admin/AdminResources'));
+const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminLogs = lazy(() => import('./pages/admin/AdminLogs'));
+const AdminAdmins = lazy(() => import('./pages/admin/AdminAdmins'));
 
 export default function App() {
   return (
@@ -84,13 +87,13 @@ const AdminApp: React.FC = () => (
             </RequireAdmin>
           }
         >
-          <Route index                element={<AdminDashboard />} />
+          <Route index element={<AdminDashboard />} />
           <Route path="registrations" element={<AdminRegistrations />} />
-          <Route path="resources"     element={<AdminResources />} />
-          <Route path="messages"      element={<AdminMessages />} />
-          <Route path="settings"      element={<AdminSettings />} />
-          <Route path="logs"          element={<AdminLogs />} />
-          <Route path="admins"        element={<RequireAdmin superOnly><AdminAdmins /></RequireAdmin>} />
+          <Route path="resources" element={<AdminResources />} />
+          <Route path="messages" element={<AdminMessages />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="logs" element={<AdminLogs />} />
+          <Route path="admins" element={<RequireAdmin superOnly><AdminAdmins /></RequireAdmin>} />
         </Route>
       </Routes>
     </Suspense>
