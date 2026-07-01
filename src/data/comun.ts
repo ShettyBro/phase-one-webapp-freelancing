@@ -24,9 +24,9 @@ export const NAV_LINKS = [
 // ─── Statistics ───────────────────────────────────────────────────────────
 export const STATS = [
   { value: '7',    label: 'Committees' },
-  { value: '200+', label: 'Delegates' },
+  { value: '700+', label: 'Delegates' },
   { value: '3',    label: 'Days of Debate' },
-  { value: '1st',  label: 'Edition' },
+  { value: '12th', label: 'Edition' },
 ] as const;
 
 // ─── Committees ───────────────────────────────────────────────────────────
