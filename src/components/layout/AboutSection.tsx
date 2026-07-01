@@ -1,8 +1,9 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { STATS } from '../../data/comun';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
 import { DoveAccent } from '../ui/DoveAccent';
+import { useCountUp } from '../../hooks/useCountUp';
 
 // ─── Stat Card ────────────────────────────────────────────────────────────
 interface StatCardProps {
@@ -11,22 +12,37 @@ interface StatCardProps {
   index: number;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ value, label, index }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 24 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '-60px' }}
-    transition={{ duration: 0.6, delay: 0.1 * index, ease: [0.22, 1, 0.36, 1] }}
-    className="glass gold-border gold-border-hover flex flex-col items-center justify-center py-8 px-6 text-center"
-  >
-    <span className="font-serif-display text-4xl md:text-5xl font-semibold text-gold-gradient leading-none mb-2">
-      {value}
-    </span>
-    <span className="font-sans text-xs font-medium tracking-[0.2em] uppercase text-comun-muted mt-1">
-      {label}
-    </span>
-  </motion.div>
-);
+const StatCard: React.FC<StatCardProps> = ({ value, label, index }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+
+  // Split a value like "200+" / "1st" / "7" into its number and suffix
+  // so we can count the number up while preserving the suffix.
+  const match = value.match(/^(\d+)(.*)$/);
+  const target = match ? parseInt(match[1], 10) : 0;
+  const suffix = match ? match[2] : value;
+  const count = useCountUp(target, inView);
+  const display = match ? `${count}${suffix}` : value;
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.6, delay: 0.1 * index, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -4 }}
+      className="glass gold-border gold-border-hover flex flex-col items-center justify-center py-8 px-6 text-center"
+    >
+      <span className="font-serif-display text-4xl md:text-5xl font-semibold text-gold-gradient leading-none mb-2 tabular-nums">
+        {display}
+      </span>
+      <span className="font-sans text-xs font-medium tracking-[0.2em] uppercase text-comun-muted mt-1">
+        {label}
+      </span>
+    </motion.div>
+  );
+};
 
 // ─── About Section ────────────────────────────────────────────────────────
 const AboutSection: React.FC = () => (

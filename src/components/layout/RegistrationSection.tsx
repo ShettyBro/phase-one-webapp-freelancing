@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { REGISTRATION_TYPES } from '../../data/comun';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
 import { DoveAccent } from '../ui/DoveAccent';
+import { useRegistration } from '../../context/RegistrationContext';
 
 // ─── Registration Card ────────────────────────────────────────────────────
 interface RegCardProps {
@@ -12,6 +14,8 @@ interface RegCardProps {
 
 const RegistrationCard: React.FC<RegCardProps> = ({ data, index }) => {
   const isFeatured = 'featured' in data && data.featured === true;
+  const { isOpen, requireOpen } = useRegistration();
+  const navigate = useNavigate();
 
   return (
     <motion.div
@@ -19,7 +23,7 @@ const RegistrationCard: React.FC<RegCardProps> = ({ data, index }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.65, delay: 0.12 * index, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -6, transition: { duration: 0.25 } }}
+      whileHover={{ y: -6, scale: 1.015, transition: { duration: 0.25 } }}
       className={`
         relative group flex flex-col overflow-hidden
         ${isFeatured
@@ -31,9 +35,9 @@ const RegistrationCard: React.FC<RegCardProps> = ({ data, index }) => {
       `}
       style={{ backdropFilter: 'blur(10px)' }}
     >
-      {/* Featured top bar */}
+      {/* Featured top bar — maroon→gold→maroon brand accent */}
       {isFeatured && (
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-comun-gold to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-comun-maroon via-comun-gold to-comun-maroon" />
       )}
 
       {/* Corner ornament */}
@@ -80,14 +84,12 @@ const RegistrationCard: React.FC<RegCardProps> = ({ data, index }) => {
         <div className="mt-4 pt-4 border-t border-comun-gold/10">
           <button
             className={isFeatured ? 'btn-primary w-full text-sm py-3' : 'btn-secondary w-full text-sm py-3'}
-            onClick={() => {
-              // Placeholder — will connect to registration page
-            }}
+            onClick={() => requireOpen(() => navigate('/register'))}
           >
-            {data.cta}
+            {isOpen ? data.cta : 'Registrations Closed'}
           </button>
           <p className="text-center font-sans text-xs text-comun-muted/50 mt-3">
-            Registration opens soon
+            {isOpen ? 'Secure your place at CoMUN 2026' : 'Registrations are currently closed'}
           </p>
         </div>
       </div>

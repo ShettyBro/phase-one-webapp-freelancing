@@ -2,20 +2,23 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { NAV_LINKS, CONFERENCE } from '../../data/comun';
+import { smoothScrollTo } from '../../utils/scroll';
 
 const Footer: React.FC = () => {
   const handleNavClick = (href: string) => {
-    if (href.startsWith('#')) {
-      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    if (href === '/') {
+      smoothScrollTo('top');
+    } else if (href.startsWith('#')) {
+      smoothScrollTo(href);
     }
   };
 
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-comun-charcoal border-t border-comun-gold/10 overflow-hidden">
-      {/* Ambient top glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-px bg-gradient-to-r from-transparent via-comun-gold/30 to-transparent" />
+    <footer className="relative bg-comun-charcoal border-t border-comun-maroon/40 overflow-hidden">
+      {/* Ambient top accent — maroon → gold → maroon brand bookend */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-comun-maroon/50 via-comun-gold/50 to-comun-maroon/50" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-20 bg-comun-gold/5 blur-3xl" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
@@ -72,6 +75,18 @@ const Footer: React.FC = () => {
                 {link.label}
               </button>
             ))}
+            <Link
+              to="/register"
+              className="text-left font-sans text-sm text-comun-muted hover:text-comun-gold transition-colors duration-200 w-fit"
+            >
+              Register
+            </Link>
+            <Link
+              to="/retrieve"
+              className="text-left font-sans text-sm text-comun-muted hover:text-comun-gold transition-colors duration-200 w-fit"
+            >
+              Retrieve Registration
+            </Link>
           </motion.div>
 
           {/* Conference Column */}

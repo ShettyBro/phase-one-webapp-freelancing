@@ -26,7 +26,7 @@ export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index }
       delay: 0.07 * (index % 4),
       ease: [0.22, 1, 0.36, 1],
     }}
-    whileHover={{ y: -6, transition: { duration: 0.25, ease: 'easeOut' } }}
+    whileHover={{ y: -6, scale: 1.015, transition: { duration: 0.25, ease: 'easeOut' } }}
     className={`
       relative group cursor-pointer overflow-hidden
       bg-gradient-to-br ${committee.color}

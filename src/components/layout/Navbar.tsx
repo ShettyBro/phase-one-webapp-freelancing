@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { NAV_LINKS } from '../../data/comun';
+import { smoothScrollTo } from '../../utils/scroll';
+import { useRegistration } from '../../context/RegistrationContext';
 
 /**
  * Maps each nav label to the section ID it represents on the page.
@@ -83,21 +85,29 @@ const Navbar: React.FC = () => {
   const handleNavClick = (href: string, label: string) => {
     setActiveLink(label);
     if (href === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      smoothScrollTo('top');
     } else if (href.startsWith('#')) {
-      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+      smoothScrollTo(href);
     }
     setOpen(false);
   };
 
+  const { isOpen: registrationOpen, requireOpen } = useRegistration();
+  const navigate = useNavigate();
+
   const handleRegister = () => {
-    document.querySelector('#registration')?.scrollIntoView({ behavior: 'smooth' });
+    requireOpen(() => navigate('/register'));
     setOpen(false);
   };
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50">
+      <motion.nav
+        className="fixed top-0 left-0 right-0 z-50"
+        initial={{ y: -28, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
 
@@ -107,9 +117,9 @@ const Navbar: React.FC = () => {
               <div
                 className="flex items-center gap-1 px-1.5 py-1.5"
                 style={{
-                  border: '1.5px solid rgba(201, 168, 76, 0.6)',
+                  border: '1.5px solid rgba(145, 38, 38, 0.85)',
                   borderRadius: '999px',
-                  background: 'rgba(0,0,0,0.25)',
+                  background: 'rgba(94, 23, 23, 0.28)',
                   backdropFilter: 'blur(8px)',
                 }}
               >
@@ -131,14 +141,14 @@ const Navbar: React.FC = () => {
                         border: 'none',
                         outline: 'none',
                         background: isActive
-                          ? 'linear-gradient(135deg, #C9A84C 0%, #E2C27D 100%)'
+                          ? 'linear-gradient(135deg, #FFD000 0%, #FFE266 100%)'
                           : 'transparent',
                         color: isActive ? '#0a0a0a' : 'rgba(255,255,255,0.85)',
                       }}
                       onMouseEnter={e => {
                         if (!isActive) {
-                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,168,76,0.15)';
-                          (e.currentTarget as HTMLButtonElement).style.color = '#C9A84C';
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,208,0,0.15)';
+                          (e.currentTarget as HTMLButtonElement).style.color = '#FFD000';
                         }
                       }}
                       onMouseLeave={e => {
@@ -174,26 +184,26 @@ const Navbar: React.FC = () => {
                 onClick={handleRegister}
                 className="hidden md:inline-flex items-center justify-center font-sans font-bold text-sm tracking-widest uppercase cursor-pointer"
                 style={{
-                  background: 'linear-gradient(135deg, #C9A84C 0%, #E2C27D 100%)',
+                  background: 'linear-gradient(135deg, #FFD000 0%, #FFE266 100%)',
                   color: '#0a0a0a',
                   padding: '0.6rem 1.75rem',
                   borderRadius: '999px',
                   border: 'none',
                   outline: 'none',
                   letterSpacing: '0.08em',
-                  boxShadow: '0 4px 20px rgba(201,168,76,0.4)',
+                  boxShadow: '0 4px 20px rgba(255,208,0,0.4)',
                   transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 28px rgba(201,168,76,0.55)';
+                  (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 28px rgba(255,208,0,0.55)';
                 }}
                 onMouseLeave={e => {
                   (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 20px rgba(201,168,76,0.4)';
+                  (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 20px rgba(255,208,0,0.4)';
                 }}
               >
-                Register
+                {registrationOpen ? 'Register' : 'Registrations Closed'}
               </button>
 
               {/* Mobile hamburger */}
@@ -207,7 +217,7 @@ const Navbar: React.FC = () => {
             </div>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* ── Mobile Drawer ──────────────────────────────────────────── */}
       <AnimatePresence>
@@ -230,7 +240,7 @@ const Navbar: React.FC = () => {
               style={{
                 background: 'rgba(10,10,10,0.95)',
                 backdropFilter: 'blur(20px)',
-                borderLeft: '1px solid rgba(201,168,76,0.15)',
+                borderLeft: '1px solid rgba(255,208,0,0.15)',
               }}
             >
               <div className="flex flex-col h-full p-6">
@@ -256,7 +266,7 @@ const Navbar: React.FC = () => {
                         transition={{ delay: 0.05 * i }}
                         className="text-left font-sans text-base py-3 px-4 rounded-full transition-all duration-200"
                         style={{
-                          background: isActive ? 'linear-gradient(135deg, #C9A84C, #E2C27D)' : 'transparent',
+                          background: isActive ? 'linear-gradient(135deg, #FFD000, #FFE266)' : 'transparent',
                           color: isActive ? '#0a0a0a' : 'rgba(255,255,255,0.75)',
                           fontWeight: isActive ? 700 : 500,
                         }}
@@ -272,11 +282,11 @@ const Navbar: React.FC = () => {
                     onClick={handleRegister}
                     className="w-full font-sans font-bold text-sm tracking-widest uppercase py-3 rounded-full"
                     style={{
-                      background: 'linear-gradient(135deg, #C9A84C, #E2C27D)',
+                      background: 'linear-gradient(135deg, #FFD000, #FFE266)',
                       color: '#0a0a0a',
                     }}
                   >
-                    Register Now
+                    {registrationOpen ? 'Register Now' : 'Registrations Closed'}
                   </button>
                 </div>
               </div>

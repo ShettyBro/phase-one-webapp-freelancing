@@ -1,0 +1,25 @@
+# ─── Netlify configuration — CoMUN 2026 ──────────────────────────────────
+[build]
+  command   = "prisma generate && vite build"
+  publish   = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  node_bundler = "esbuild"
+  # Ship the Prisma query engine + schema so functions can reach the DB.
+  included_files = ["node_modules/.prisma/client/**", "prisma/schema.prisma"]
+
+# REST API → Netlify Functions (keeps the frontend axios baseURL '/api')
+[[redirects]]
+  from   = "/api/*"
+  to     = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback — client-side routing
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

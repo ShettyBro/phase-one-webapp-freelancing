@@ -4,6 +4,7 @@ import { Mail, MapPin, Clock } from 'lucide-react';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
 import { DoveAccent } from '../ui/DoveAccent';
 import { CONFERENCE } from '../../data/comun';
+import api from '../../utils/api';
 
 const ContactSection: React.FC = () => {
   const [form, setForm]     = useState({ name: '', email: '', message: '' });
@@ -14,13 +15,20 @@ const ContactSection: React.FC = () => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Placeholder: will connect to backend API
-    await new Promise(r => setTimeout(r, 1000));
-    setSent(true);
-    setLoading(false);
+    setError(null);
+    try {
+      await api.post('/contact', form);
+      setSent(true);
+    } catch {
+      setError('Could not send your message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const INFO = [
@@ -172,6 +180,8 @@ const ContactSection: React.FC = () => {
                     className="bg-white/5 border border-comun-gold/15 text-comun-white placeholder:text-comun-muted/40 font-sans text-sm px-4 py-3 outline-none focus:border-comun-gold/40 transition-colors resize-none"
                   />
                 </div>
+
+                {error && <p className="form-error">{error}</p>}
 
                 <button
                   type="submit"

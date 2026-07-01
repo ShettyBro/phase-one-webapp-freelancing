@@ -1,26 +1,43 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
+import { RegistrationProvider } from './context/RegistrationContext';
+
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const RetrievePage = lazy(() => import('./pages/RetrievePage'));
 
 export default function App() {
   return (
     <Router>
-      {/* Global scroll progress bar */}
-      <ScrollProgress />
+      <RegistrationProvider>
+        {/* Global scroll progress bar */}
+        <ScrollProgress />
 
-      <Navbar />
+        <Navbar />
 
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        {/* Future routes: /about, /committees, /register, /admin */}
-      </Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/retrieve" element={<RetrievePage />} />
+            {/* Future routes: /admin */}
+          </Routes>
+        </Suspense>
 
-      <Footer />
+        <Footer />
+      </RegistrationProvider>
     </Router>
   );
 }
+
+// ─── Route loading fallback ───────────────────────────────────────────────
+const RouteFallback: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-6 h-6 border-2 border-comun-gold/30 border-t-comun-gold rounded-full animate-spin" />
+  </div>
+);
 
 // ─── Gold Scroll Progress Bar ─────────────────────────────────────────────
 import { useScrollProgress } from './hooks/useScroll';

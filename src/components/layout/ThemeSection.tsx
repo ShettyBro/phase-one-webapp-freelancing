@@ -1,6 +1,53 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { CONFERENCE } from '../../data/comun';
+
+// ─── Letter-by-letter reveal ──────────────────────────────────────────────
+const wordContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } },
+};
+
+const letterVariant: Variants = {
+  hidden: { y: '90%', opacity: 0, filter: 'blur(10px)' },
+  show: {
+    y: 0,
+    opacity: 1,
+    filter: 'blur(0px)',
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+interface AnimatedWordProps {
+  text: string;
+  className?: string;
+  letterClassName?: string;
+  style?: React.CSSProperties;
+}
+
+/** Renders a word where each letter rises + un-blurs in a staggered cascade. */
+const AnimatedWord: React.FC<AnimatedWordProps> = ({ text, className, letterClassName = '', style }) => (
+  <motion.h2
+    variants={wordContainer}
+    initial="hidden"
+    whileInView="show"
+    viewport={{ once: true, margin: '-80px' }}
+    className={className}
+    style={style}
+    aria-label={text}
+  >
+    {text.split('').map((ch, i) => (
+      <motion.span
+        key={i}
+        variants={letterVariant}
+        className={`inline-block ${letterClassName}`}
+        style={{ willChange: 'transform, filter' }}
+      >
+        {ch}
+      </motion.span>
+    ))}
+  </motion.h2>
+);
 
 /**
  * Conference Theme section — large typographic statement for "Peace Over Power"
@@ -9,14 +56,16 @@ const ThemeSection: React.FC = () => (
   <section className="relative py-20 md:py-24 overflow-hidden bg-comun-navy/30">
     {/* Background layers */}
     <div className="absolute inset-0 bg-gradient-to-b from-comun-black via-comun-navy/60 to-comun-black" />
-    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.1)_0%,transparent_65%)]" />
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,208,0,0.1)_0%,transparent_65%)]" />
+    {/* Maroon brand wash on the flanks */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_45%_60%_at_12%_50%,rgba(145,38,38,0.16)_0%,transparent_60%),radial-gradient(ellipse_45%_60%_at_88%_50%,rgba(145,38,38,0.16)_0%,transparent_60%)]" />
 
     {/* Faint horizontal rule lines */}
     {[20, 40, 60, 80].map(pct => (
       <div
         key={pct}
         className="absolute left-0 right-0 h-px opacity-[0.04]"
-        style={{ top: `${pct}%`, background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)' }}
+        style={{ top: `${pct}%`, background: 'linear-gradient(90deg, transparent, #FFD000, transparent)' }}
       />
     ))}
 
@@ -71,17 +120,13 @@ const ThemeSection: React.FC = () => (
         </motion.p>
       </div>
 
-      <div className="overflow-hidden mb-4">
-        <motion.h2
-          initial={{ y: '100%', opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          className="font-serif-display font-semibold text-gold-shimmer leading-tight"
+      <div className="overflow-hidden mb-4 py-1">
+        <AnimatedWord
+          text="Peace"
+          className="font-serif-display font-semibold leading-tight"
+          letterClassName="text-gold-shimmer"
           style={{ fontSize: 'clamp(2.8rem, 7.5vw, 6.5rem)' }}
-        >
-          Peace
-        </motion.h2>
+        />
       </div>
 
       <div className="overflow-hidden mb-10">
@@ -103,17 +148,12 @@ const ThemeSection: React.FC = () => (
         </motion.div>
       </div>
 
-      <div className="overflow-hidden mb-10">
-        <motion.h2
-          initial={{ y: '100%', opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-          className="font-serif-display font-semibold text-comun-white/25 leading-tight"
+      <div className="overflow-hidden mb-10 py-1">
+        <AnimatedWord
+          text="Power"
+          className="font-serif-display font-semibold leading-tight text-comun-white/25"
           style={{ fontSize: 'clamp(2.8rem, 7.5vw, 6.5rem)' }}
-        >
-          Power
-        </motion.h2>
+        />
       </div>
 
       {/* Theme description */}

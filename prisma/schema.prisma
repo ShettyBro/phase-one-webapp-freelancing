@@ -1,5 +1,14 @@
+// ─────────────────────────────────────────────────────────────────────────
+// CoMUN 2026 — Prisma schema (Neon PostgreSQL)
+// Covers: registrations (individual single/double + institutional), uploaded
+// files (R2), resources CMS, contact messages, settings, admins/roles,
+// login logs and activity logs.
+// ─────────────────────────────────────────────────────────────────────────
+
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // "native" for local dev; rhel target for Netlify Functions (AWS Lambda) runtime.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -7,20 +16,232 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Admin {
-  id           String   @id @default(cuid())
-  username     String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  lastLogin    DateTime?
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+enum AdminRole {
+  ADMIN
+  SUPER_ADMIN
 }
 
+enum RegistrationType {
+  INDIVIDUAL
+  INSTITUTIONAL
+}
+
+enum DelegationType {
+  SINGLE
+  DOUBLE
+}
+
+enum FileKind {
+  ID_PROOF      // delegate identity proof (individual)
+  SPREADSHEET   // institutional delegate spreadsheet (csv/xlsx)
+  RESOURCE      // public downloadable resource (admin CMS)
+}
+
+enum ActivityAction {
+  LOGIN
+  LOGOUT
+  RESOURCE_UPLOAD
+  RESOURCE_REPLACE
+  RESOURCE_DELETE
+  RESOURCE_TOGGLE
+  REGISTRATION_DELETE
+  REGISTRATION_TOGGLE
+  MESSAGE_DELETE
+  PASSWORD_RESET
+  ADMIN_CREATION
+  ADMIN_TOGGLE
+  OTHER
+}
+
+// ─── Authentication ─────────────────────────────────────────────────────────
+
+model Admin {
+  id           String    @id @default(cuid())
+  name         String
+  username     String    @unique
+  email        String    @unique
+  phone        String    @unique
+  passwordHash String
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Super admin who created this admin (self-relation)
+  createdById  String?
+  createdBy    Admin?    @relation("AdminCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAdmins Admin[]  @relation("AdminCreatedBy")
+
+  loginLogs    LoginLog[]
+  activityLogs ActivityLog[]
+
+  @@index([role])
+  @@index([isActive])
+}
+
+// ─── Registration ───────────────────────────────────────────────────────────
+
 model Registration {
-  id             String   @id @default(cuid())
-  registrationId String   @unique
-  fullName       String
-  email          String
-  phone          String
-  status         String   @default("pending")
-  createdAt      DateTime @default(now())
+  id             String           @id @default(cuid())
+  applicationId  String           @unique // COMUN26-XXXXXX
+  type           RegistrationType
+  delegationType DelegationType?  // only for INDIVIDUAL
+
+  // Individual — committee + a single shared portfolio
+  committee      String?
+  portfolio      String?
+
+  // Institutional — contacts + institution name
+  institutionName String?
+  teacherName     String?
+  teacherEmail    String?
+  teacherPhone    String?
+  headName        String?
+  headEmail       String?
+  headPhone       String?
+
+  amountPayable  Int      @default(0) // payable at the registration desk
+  submittedAt    DateTime @default(now())
+
+  delegates Delegate[]
+  files     UploadedFile[]
+
+  // Institutional duplicate prevention (teacher email/phone).
+  // NULLs are allowed multiple times in Postgres, so individual rows are unaffected.
+  @@unique([teacherEmail])
+  @@unique([teacherPhone])
+  @@index([type])
+  @@index([committee])
+  @@index([submittedAt])
+}
+
+model Delegate {
+  id             String  @id @default(cuid())
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  position    Int      // 1 (single / delegate 1) or 2 (delegate 2)
+  name        String
+  email       String
+  phone       String
+  grade       Int      // 6–12
+  nationality String
+  experience  String
+  institution String?
+
+  createdAt   DateTime @default(now())
+
+  // Individual duplicate prevention — a person may only register once.
+  @@unique([email])
+  @@unique([phone])
+  @@index([registrationId])
+}
+
+// ─── Uploaded files (Cloudflare R2) ─────────────────────────────────────────
+
+model UploadedFile {
+  id        String   @id @default(cuid())
+  kind      FileKind
+  r2Key     String   @unique // object key in the R2 bucket
+  fileName  String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+
+  // Optional owners — files are deleted from R2 when their owner is deleted.
+  registrationId String?
+  registration   Registration? @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  resource   Resource?
+
+  @@index([kind])
+  @@index([registrationId])
+}
+
+// ─── Resources CMS ──────────────────────────────────────────────────────────
+
+model ResourceCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  order     Int        @default(0)
+  createdAt DateTime   @default(now())
+  resources Resource[]
+}
+
+model Resource {
+  id          String  @id @default(cuid())
+  categoryId  String
+  category    ResourceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  isEnabled   Boolean @default(true)
+
+  // The backing R2 file (one-to-one). Replacing swaps the file + R2 object.
+  fileId      String?  @unique
+  file        UploadedFile? @relation(fields: [fileId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isEnabled])
+}
+
+// ─── Contact messages ───────────────────────────────────────────────────────
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ─── Settings (key/value singleton store) ───────────────────────────────────
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g. "registration_open"
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Logs ───────────────────────────────────────────────────────────────────
+
+model LoginLog {
+  id            String    @id @default(cuid())
+  adminId       String?
+  admin         Admin?    @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  usernameTried String?   // username attempted (kept even on failure / unknown admin)
+  loginTime     DateTime  @default(now())
+  logoutTime    DateTime?
+  ipAddress     String?
+  browser       String?
+  device        String?
+  success       Boolean   @default(false)
+
+  @@index([adminId])
+  @@index([loginTime])
+}
+
+model ActivityLog {
+  id        String         @id @default(cuid())
+  adminId   String?
+  admin     Admin?         @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action    ActivityAction
+  details   String?
+  ipAddress String?
+  createdAt DateTime       @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
 }

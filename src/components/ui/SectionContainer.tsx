@@ -30,7 +30,7 @@ export const SectionContainer: React.FC<SectionContainerProps> = ({
   return (
     <section
       id={id}
-      className={`relative overflow-hidden ${padding} px-4 sm:px-6 lg:px-8 ${className}`}
+      className={`relative overflow-hidden scroll-mt-20 md:scroll-mt-24 ${padding} px-4 sm:px-6 lg:px-8 ${className}`}
     >
       {decor}
       <div className={`relative z-10 ${maxW} mx-auto`}>{children}</div>
@@ -70,8 +70,14 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
       <h2 className="font-serif-display text-section text-comun-white leading-tight">
         {title}
       </h2>
-      {centered && <div className="gold-divider mt-2" />}
-      {!centered && <div className="gold-divider-left mt-2" />}
+      <motion.div
+        className={`${centered ? 'gold-divider' : 'gold-divider-left'} mt-2`}
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
+        style={{ transformOrigin: centered ? 'center' : 'left' }}
+      />
       {subtitle && (
         <p className="text-comun-muted font-sans text-base md:text-lg max-w-2xl leading-relaxed mt-2">
           {subtitle}

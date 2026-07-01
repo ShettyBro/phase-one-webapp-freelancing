@@ -3,6 +3,7 @@ import { FAQS } from '../../data/comun';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
 import { FAQAccordion } from '../ui/FAQAccordion';
 import { motion } from 'framer-motion';
+import { smoothScrollTo } from '../../utils/scroll';
 
 const FAQSection: React.FC = () => (
   <SectionContainer
@@ -42,7 +43,7 @@ const FAQSection: React.FC = () => (
       >
         Have a question not listed here?{' '}
         <button
-          onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })}
+          onClick={() => smoothScrollTo('#contact')}
           className="text-comun-gold hover:text-comun-gold-light transition-colors underline underline-offset-2"
         >
           Contact us

@@ -5,6 +5,8 @@ export const CONFERENCE = {
   fullName: 'Cottons Model United Nations',
   theme: 'Peace Over Power',
   dates: '30 July – 1 August 2026',
+  /** Conference start — drives the live countdown timer. */
+  startsAt: '2026-07-30T09:00:00',
   romanYear: 'MMXXVI',
   location: 'Cottons Campus',
   edition: '1st Edition',

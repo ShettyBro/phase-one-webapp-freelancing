@@ -14,7 +14,7 @@ const VideoSection: React.FC = () => {
   const [muted,     setMuted]       = useState(false);
   const [progress,  setProgress]    = useState(0);
   const [showCtrl,  setShowCtrl]    = useState(true);
-  const hideTimer                   = useRef<ReturnType<typeof setTimeout>>(null);
+  const hideTimer                   = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const togglePlay = () => {
     const v = videoRef.current;

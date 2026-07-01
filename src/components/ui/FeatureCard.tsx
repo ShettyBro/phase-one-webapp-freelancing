@@ -14,7 +14,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, descripti
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: '-60px' }}
     transition={{ duration: 0.6, delay: 0.08 * (index % 3), ease: [0.22, 1, 0.36, 1] }}
-    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+    whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }}
     className="group relative glass gold-border gold-border-hover p-6 flex flex-col gap-4 overflow-hidden"
   >
     {/* Hover shimmer */}

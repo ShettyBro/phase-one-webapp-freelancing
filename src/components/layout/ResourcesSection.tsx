@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
+import { smoothScrollTo } from '../../utils/scroll';
 
 // ─── Resource types ───────────────────────────────────────────────────────
 const RESOURCES = [
@@ -191,7 +192,7 @@ const ResourcesSection: React.FC = () => (
       style={{
         top: '20%', right: 0,
         width: '400px', height: '400px',
-        background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.05) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse at center, rgba(255,208,0,0.05) 0%, transparent 70%)',
         filter: 'blur(60px)',
       }}
     />
@@ -223,8 +224,8 @@ const ResourcesSection: React.FC = () => (
         transition={{ duration: 0.6, delay: 0.4 }}
         className="mt-12 p-5 flex flex-col sm:flex-row items-center justify-between gap-4"
         style={{
-          background: 'rgba(201,168,76,0.05)',
-          border: '1px solid rgba(201,168,76,0.15)',
+          background: 'rgba(255,208,0,0.05)',
+          border: '1px solid rgba(255,208,0,0.15)',
         }}
       >
         <div className="flex items-center gap-3">
@@ -234,7 +235,7 @@ const ResourcesSection: React.FC = () => (
           </p>
         </div>
         <button
-          onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })}
+          onClick={() => smoothScrollTo('#contact')}
           className="btn-secondary text-xs px-5 py-2.5 flex-shrink-0"
         >
           Get Notified

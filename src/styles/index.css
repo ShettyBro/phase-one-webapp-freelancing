@@ -4,9 +4,9 @@
 
 /* ─── Base Reset & Root Variables ─────────────────────────────────── */
 :root {
-  --gold:        #C9A84C;
-  --gold-light:  #E2C27D;
-  --gold-dark:   #9A7A32;
+  --gold:        #FFD000;
+  --gold-light:  #FFE266;
+  --gold-dark:   #C9A300;
   --black:       #0c0e14;
   --charcoal:    #111420;
   --navy:        #0d1830;
@@ -16,7 +16,9 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* JS-driven smooth scroll (utils/scroll.ts) handles eased navigation —
+     keep this 'auto' so the two don't fight and cause jank. */
+  scroll-behavior: auto;
   overflow-x: hidden;
 }
 
@@ -32,7 +34,9 @@ body {
   background-color: #070e1d;
   background-image:
     radial-gradient(ellipse 70% 50% at 50% 0%, rgba(91,184,212,0.05) 0%, transparent 55%),
-    radial-gradient(ellipse 90% 60% at 50% 100%, rgba(201,168,76,0.04) 0%, transparent 60%);
+    radial-gradient(ellipse 60% 45% at 100% 35%, rgba(145,38,38,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 45% at 0% 70%, rgba(145,38,38,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255,208,0,0.04) 0%, transparent 60%);
   background-attachment: fixed;
   color: var(--white-warm);
   font-family: 'Inter', system-ui, sans-serif;
@@ -48,7 +52,7 @@ body {
 /* ─── Selection ──────────────────────────────────────────────────── */
 ::selection {
   background: rgba(201, 168, 76, 0.3);
-  color: #E2C27D;
+  color: #FFE266;
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────────────── */
@@ -59,11 +63,11 @@ body {
   background: #0e1525;
 }
 ::-webkit-scrollbar-thumb {
-  background: #C9A84C;
+  background: #FFD000;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #E2C27D;
+  background: #FFE266;
 }
 
 /* ─── Typography Utilities ───────────────────────────────────────── */
@@ -72,7 +76,7 @@ body {
 }
 
 .text-gold-gradient {
-  background: linear-gradient(135deg, #C9A84C 0%, #E2C27D 50%, #9A7A32 100%);
+  background: linear-gradient(135deg, #FFD000 0%, #FFE266 50%, #C9A300 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -81,11 +85,11 @@ body {
 .text-gold-shimmer {
   background: linear-gradient(
     90deg,
-    #9A7A32 0%,
-    #E2C27D 30%,
-    #C9A84C 50%,
-    #E2C27D 70%,
-    #9A7A32 100%
+    #C9A300 0%,
+    #FFE266 30%,
+    #FFD000 50%,
+    #FFE266 70%,
+    #C9A300 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -135,7 +139,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.875rem 2.25rem;
-  background: linear-gradient(135deg, #C9A84C 0%, #E2C27D 50%, #9A7A32 100%);
+  background: linear-gradient(135deg, #FFD000 0%, #FFE266 50%, #C9A300 100%);
   color: #0a0a0a;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
@@ -174,7 +178,7 @@ body {
   gap: 0.5rem;
   padding: 0.875rem 2.25rem;
   background: transparent;
-  color: #C9A84C;
+  color: #FFD000;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   font-size: 0.875rem;
@@ -186,25 +190,75 @@ body {
 }
 
 .btn-secondary:hover {
-  background: rgba(201, 168, 76, 0.08);
-  border-color: rgba(201, 168, 76, 0.7);
-  color: #E2C27D;
+  background: rgba(255, 208, 0, 0.08);
+  border-color: rgba(255, 208, 0, 0.7);
+  color: #FFE266;
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(201, 168, 76, 0.15);
+  box-shadow: 0 4px 20px rgba(255, 208, 0, 0.15);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ─── Form Controls ──────────────────────────────────────────────── */
+.form-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 208, 0, 0.7);
+}
+
+.form-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 208, 0, 0.15);
+  color: #F5F0E8;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+  outline: none;
+  border-radius: 2px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.form-input::placeholder {
+  color: rgba(138, 138, 138, 0.45);
+}
+.form-input:focus {
+  border-color: rgba(255, 208, 0, 0.45);
+  background: rgba(255, 255, 255, 0.07);
+}
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+select.form-input option {
+  background: #0c1730;
+  color: #F5F0E8;
+}
+.form-error {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: #B83A3A;
 }
 
 /* ─── Section Divider ────────────────────────────────────────────── */
 .gold-divider {
   width: 60px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #C9A84C, transparent);
+  background: linear-gradient(90deg, transparent, #FFD000, transparent);
   margin: 0 auto;
 }
 
 .gold-divider-left {
   width: 60px;
   height: 1px;
-  background: linear-gradient(90deg, #C9A84C, transparent);
+  background: linear-gradient(90deg, #FFD000, transparent);
 }
 
 /* ─── Ambient Glow Orbs ─────────────────────────────────────────── */
