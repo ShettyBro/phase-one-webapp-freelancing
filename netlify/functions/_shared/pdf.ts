@@ -190,13 +190,13 @@ export async function buildRegistrationPdf(
         x: PW - MR - dw - 5,
         y: 32,
         width: dw, height: dh,
-        opacity: 0.12,
+        opacity: 0.8,
       });
     }
 
     // Footer bar
     page.drawRectangle({ x: 0, y: 0, width: PW, height: 28, color: C_NAVY });
-    const footerLeft = 'CoMUN 2026  |  Official Delegate Record  |  v2.1';
+    const footerLeft = 'CoMUN 2026  |  Official Delegate Record  |  v2.2';
     page.drawText(footerLeft, {
       x: ML, y: 9, size: 7.5, font: fSansBold, color: C_GOLD,
     });
@@ -274,7 +274,9 @@ export async function buildRegistrationPdf(
     const lines = wrap(safe(text), fSans, 9, CW - 22);
     const h = Math.max(18, lines.length * 13 + 6);
     ensureSpace(h);
-    page.drawCircle({ x: ML + 7, y: curY - 9, radius: 2, color: C_MAROON });
+    // Using a tiny rectangle for the bullet instead of drawCircle, as some PDF viewers
+    // misinterpret the circle drawing operators and render a massive shape.
+    page.drawRectangle({ x: ML + 6, y: curY - 11, width: 3, height: 3, color: C_MAROON });
     lines.forEach((ln, i) => {
       page.drawText(ln, {
         x: ML + 16, y: curY - 13 - i * 13,
