@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Search, Eye, Trash2, X, FileDown } from 'lucide-react';
+import { Search, Eye, Trash2, X, FileDown, Download, Table2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../utils/api';
 import { AdminPageHeader, AdminCard, Spinner, EmptyState, ConfirmDialog } from '../../components/admin/AdminUI';
@@ -14,6 +14,26 @@ interface RegRow {
   primaryName: string | null;
   primaryEmail: string | null;
   submittedAt: string;
+}
+
+// ── CSV export helper ──────────────────────────────────────────────────────
+function downloadCSV(rows: RegRow[]) {
+  const headers = ['Application ID', 'Type', 'Delegation', 'Name/Institution', 'Email', 'Committee', 'Submitted'];
+  const lines = rows.map((r) => [
+    r.applicationId,
+    r.type,
+    r.delegationType ?? '',
+    r.primaryName ?? r.institutionName ?? '',
+    r.primaryEmail ?? '',
+    r.committee ?? '',
+    r.submittedAt.slice(0, 10),
+  ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','));
+  const csv = [headers.join(','), ...lines].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `registrations-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
 }
 
 const AdminRegistrations: React.FC = () => {
@@ -63,7 +83,20 @@ const AdminRegistrations: React.FC = () => {
 
   return (
     <div>
-      <AdminPageHeader title="Registrations" subtitle="Search, view and manage all registrations." />
+      <AdminPageHeader
+        title="Registrations"
+        subtitle={`${rows.length} record${rows.length !== 1 ? 's' : ''} — Search, view and manage all registrations.`}
+        actions={
+          <button
+            onClick={() => downloadCSV(rows)}
+            disabled={rows.length === 0}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-sm font-sans text-xs font-semibold uppercase tracking-wider border border-comun-gold/25 text-comun-gold/80 hover:bg-comun-gold/10 hover:text-comun-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Table2 className="w-3.5 h-3.5" />
+            Export CSV
+          </button>
+        }
+      />
 
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
@@ -132,7 +165,7 @@ const AdminRegistrations: React.FC = () => {
                 <h3 className="font-serif-display text-lg text-comun-gold">Registration</h3>
                 <button onClick={() => setDetailId(null)} className="p-1.5 text-comun-muted hover:text-comun-gold"><X className="w-5 h-5" /></button>
               </div>
-              {!detail ? <Spinner /> : <RegistrationDetail detail={detail} onDelete={() => setDeleteId(detailId)} />}
+              {!detail ? <Spinner /> : <RegistrationDetail detail={detail} regId={detailId} onDelete={() => setDeleteId(detailId)} />}
             </motion.div>
           </>
         )}
@@ -151,18 +184,48 @@ const AdminRegistrations: React.FC = () => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const RegistrationDetail: React.FC<{ detail: any; onDelete: () => void }> = ({ detail, onDelete }) => {
+const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete: () => void }> = ({ detail, regId, onDelete }) => {
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const downloadPdf = async () => {
+    setPdfLoading(true);
+    try {
+      const res = await api.get('/admin-registration-pdf', {
+        params: { id: regId },
+        responseType: 'blob',
+      });
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = `${detail.applicationId}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div className="flex justify-between gap-4 py-1.5 border-b border-white/5">
-      <span className="font-sans text-xs text-comun-muted uppercase tracking-wider">{label}</span>
+      <span className="font-sans text-xs text-comun-muted uppercase tracking-wider flex-shrink-0">{label}</span>
       <span className="font-sans text-sm text-comun-white/85 text-right">{value || '—'}</span>
     </div>
   );
+
   return (
     <div className="p-5">
-      <div className="mb-4">
-        <p className="font-serif-display text-2xl text-comun-gold">{detail.applicationId}</p>
-        <p className="font-sans text-xs text-comun-muted">{detail.type === 'INDIVIDUAL' ? `Individual · ${detail.delegationType}` : 'Institutional'}</p>
+      {/* Header + PDF download */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <p className="font-serif-display text-2xl text-comun-gold">{detail.applicationId}</p>
+          <p className="font-sans text-xs text-comun-muted">{detail.type === 'INDIVIDUAL' ? `Individual · ${detail.delegationType}` : 'Institutional'}</p>
+        </div>
+        <button
+          onClick={downloadPdf}
+          disabled={pdfLoading}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-sm font-sans text-xs border border-comun-gold/30 text-comun-gold hover:bg-comun-gold/10 transition-colors disabled:opacity-50 flex-shrink-0"
+        >
+          <Download className="w-3.5 h-3.5" />
+          {pdfLoading ? 'Generating…' : 'Download PDF'}
+        </button>
       </div>
 
       {detail.committee && <Row label="Committee" value={detail.committee} />}
@@ -181,6 +244,7 @@ const RegistrationDetail: React.FC<{ detail: any; onDelete: () => void }> = ({ d
         </div>
       )}
 
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {Array.isArray(detail.delegates) && detail.delegates.map((d: any) => (
         <div key={d.id} className="mt-4">
           <p className="font-sans text-xs text-comun-gold/70 uppercase tracking-widest mb-2">Delegate {d.position}</p>
@@ -197,6 +261,7 @@ const RegistrationDetail: React.FC<{ detail: any; onDelete: () => void }> = ({ d
       {Array.isArray(detail.files) && detail.files.length > 0 && (
         <div className="mt-4">
           <p className="font-sans text-xs text-comun-gold/70 uppercase tracking-widest mb-2">Files</p>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {detail.files.map((f: any) => (
             <a key={f.id} href={f.downloadUrl || '#'} target="_blank" rel="noopener noreferrer"
               className={`flex items-center gap-2 py-2 font-sans text-sm ${f.downloadUrl ? 'text-comun-gold hover:text-comun-gold-light' : 'text-comun-muted pointer-events-none'}`}>

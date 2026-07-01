@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { NAV_LINKS } from '../../data/comun';
@@ -177,8 +178,39 @@ const Navbar: React.FC = () => {
               </Link>
             </div>
 
-            {/* ── Right: Register Button + Mobile Toggle ────────────── */}
+            {/* ── Right: My Pass + Register Buttons + Mobile Toggle ───── */}
             <div className="flex items-center gap-3">
+
+              {/* Desktop: My Pass (ghost/subtle) */}
+              <Link
+                to="/retrieve"
+                className="hidden md:inline-flex items-center gap-1.5 font-sans font-semibold text-sm cursor-pointer"
+                style={{
+                  color: 'rgba(255,255,255,0.75)',
+                  padding: '0.55rem 1.25rem',
+                  borderRadius: '999px',
+                  border: '1.5px solid rgba(145,38,38,0.6)',
+                  background: 'rgba(94,23,23,0.18)',
+                  backdropFilter: 'blur(8px)',
+                  letterSpacing: '0.03em',
+                  transition: 'all 0.2s ease',
+                  textDecoration: 'none',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(145,38,38,0.9)';
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(94,23,23,0.35)';
+                  (e.currentTarget as HTMLAnchorElement).style.color = '#fff';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(145,38,38,0.6)';
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(94,23,23,0.18)';
+                  (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.75)';
+                }}
+              >
+                <FileText size={14} />
+                My Pass
+              </Link>
+
               {/* Desktop register button */}
               <button
                 onClick={handleRegister}
@@ -277,7 +309,22 @@ const Navbar: React.FC = () => {
                   })}
                 </nav>
 
-                <div className="pt-6 border-t border-comun-gold/10">
+                <div className="pt-6 border-t border-comun-gold/10 flex flex-col gap-3">
+                  {/* Mobile: My Pass ghost button */}
+                  <Link
+                    to="/retrieve"
+                    onClick={() => setOpen(false)}
+                    className="w-full font-sans font-semibold text-sm py-3 rounded-full text-center flex items-center justify-center gap-2"
+                    style={{
+                      background: 'rgba(94,23,23,0.25)',
+                      border: '1.5px solid rgba(145,38,38,0.5)',
+                      color: 'rgba(255,255,255,0.8)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <FileText size={14} />
+                    My Pass
+                  </Link>
                   <button
                     onClick={handleRegister}
                     className="w-full font-sans font-bold text-sm tracking-widest uppercase py-3 rounded-full"

@@ -24,15 +24,15 @@ import QRCode from 'qrcode';
 import { CURRENCY } from './domain';
 
 // ─── Brand palette ────────────────────────────────────────────────────────────
-const C_GOLD      = rgb(0.788, 0.639, 0.000); // #C9A300
+const C_GOLD = rgb(0.788, 0.639, 0.000); // #C9A300
 const C_GOLD_LITE = rgb(1.000, 0.980, 0.920); // warm cream tint
-const C_MAROON    = rgb(0.569, 0.149, 0.149); // #912626
-const C_NAVY      = rgb(0.027, 0.055, 0.114); // #070e1d
-const C_INK       = rgb(0.130, 0.150, 0.200);
-const C_MUTED     = rgb(0.420, 0.420, 0.450);
-const C_WHITE     = rgb(1, 1, 1);
-const C_RULE      = rgb(0.880, 0.870, 0.850);
-const C_BG        = rgb(0.995, 0.990, 0.982); // page background
+const C_MAROON = rgb(0.569, 0.149, 0.149); // #912626
+const C_NAVY = rgb(0.027, 0.055, 0.114); // #070e1d
+const C_INK = rgb(0.130, 0.150, 0.200);
+const C_MUTED = rgb(0.420, 0.420, 0.450);
+const C_WHITE = rgb(1, 1, 1);
+const C_RULE = rgb(0.880, 0.870, 0.850);
+const C_BG = rgb(0.995, 0.990, 0.982); // page background
 
 // ─── Page geometry ────────────────────────────────────────────────────────────
 const PW = 595.28; // A4 width
@@ -45,32 +45,32 @@ const CW = PW - ML - MR; // content width = 505
 
 // ─── Public interfaces ────────────────────────────────────────────────────────
 export interface PdfDelegate {
-  position:    number;
-  name:        string;
-  email:       string;
-  phone:       string;
-  grade:       number;
+  position: number;
+  name: string;
+  email: string;
+  phone: string;
+  grade: number;
   nationality: string;
-  experience:  string;
+  experience: string;
   institution: string | null;
 }
 
 export interface PdfRegistration {
-  applicationId:  string;
-  type:           'INDIVIDUAL' | 'INSTITUTIONAL';
+  applicationId: string;
+  type: 'INDIVIDUAL' | 'INSTITUTIONAL';
   delegationType: 'SINGLE' | 'DOUBLE' | null;
-  committee:      string | null;
-  portfolio:      string | null;
+  committee: string | null;
+  portfolio: string | null;
   institutionName: string | null;
-  teacherName:    string | null;
-  teacherEmail:   string | null;
-  teacherPhone:   string | null;
-  headName:       string | null;
-  headEmail:      string | null;
-  headPhone:      string | null;
-  amountPayable:  number;
-  submittedAt:    Date;
-  delegates:      PdfDelegate[];
+  teacherName: string | null;
+  teacherEmail: string | null;
+  teacherPhone: string | null;
+  headName: string | null;
+  headEmail: string | null;
+  headPhone: string | null;
+  amountPayable: number;
+  submittedAt: Date;
+  delegates: PdfDelegate[];
 }
 
 // ─── Asset loader ─────────────────────────────────────────────────────────────
@@ -129,11 +129,11 @@ export async function buildRegistrationPdf(
   const doc = await PDFDocument.create();
 
   // Load fonts
-  const fSerif     = await doc.embedFont(StandardFonts.TimesRoman);
+  const fSerif = await doc.embedFont(StandardFonts.TimesRoman);
   const fSerifBold = await doc.embedFont(StandardFonts.TimesRomanBold);
   const fSerifItal = await doc.embedFont(StandardFonts.TimesRomanItalic);
-  const fSans      = await doc.embedFont(StandardFonts.Helvetica);
-  const fSansBold  = await doc.embedFont(StandardFonts.HelveticaBold);
+  const fSans = await doc.embedFont(StandardFonts.Helvetica);
+  const fSansBold = await doc.embedFont(StandardFonts.HelveticaBold);
 
   // Embed images ONCE — critical; never call embedPng inside a per-page helper
   const base = process.env.PUBLIC_SITE_URL?.replace(/\/$/, '');
@@ -196,7 +196,7 @@ export async function buildRegistrationPdf(
 
     // Footer bar
     page.drawRectangle({ x: 0, y: 0, width: PW, height: 28, color: C_NAVY });
-    const footerLeft = 'CoMUN 2026  |  Official Delegate Record  |  v2.2';
+    const footerLeft = 'CoMUN 2026  |  Official Delegate Record  ';
     page.drawText(footerLeft, {
       x: ML, y: 9, size: 7.5, font: fSansBold, color: C_GOLD,
     });
@@ -219,10 +219,10 @@ export async function buildRegistrationPdf(
 
   // ─── Reusable drawing helpers ────────────────────────────────────────────────
   const SECTION_H = 22;
-  const ROW_H     = 26;
-  const LABEL_W   = 150;
-  const VALUE_X   = ML + LABEL_W;
-  const VALUE_W   = CW - LABEL_W;
+  const ROW_H = 26;
+  const LABEL_W = 150;
+  const VALUE_X = ML + LABEL_W;
+  const VALUE_W = CW - LABEL_W;
 
   function drawSectionHeading(title: string) {
     ensureSpace(SECTION_H + ROW_H);
@@ -264,7 +264,7 @@ export async function buildRegistrationPdf(
     // Thin rule below row
     page.drawLine({
       start: { x: ML, y: curY - rowHeight + 2 },
-      end:   { x: ML + CW, y: curY - rowHeight + 2 },
+      end: { x: ML + CW, y: curY - rowHeight + 2 },
       thickness: 0.4, color: C_RULE,
     });
     curY -= rowHeight;
@@ -341,7 +341,7 @@ export async function buildRegistrationPdf(
 
   // ── Application ID + Amount cards (side by side) ─────────────────────────────
   const CARD_H = 58;
-  const GAP    = 12;
+  const GAP = 12;
   const CARD_W = (CW - GAP) / 2;
 
   // App ID card
@@ -386,7 +386,7 @@ export async function buildRegistrationPdf(
   drawSectionHeading('Registration Details');
   drawRow('Registration Type', typeLabel);
   if (reg.committee) drawRow('Committee', reg.committee);
-  if (reg.portfolio)  drawRow('Portfolio Preference', reg.portfolio);
+  if (reg.portfolio) drawRow('Portfolio Preference', reg.portfolio);
   drawRow('Submission Date',
     reg.submittedAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }));
 
@@ -400,13 +400,13 @@ export async function buildRegistrationPdf(
         ? `Delegate ${d.position} - ${d.name.trim() || 'Information'}`
         : 'Delegate Information';
       drawSectionHeading(heading);
-      drawRow('Full Name',       d.name);
-      drawRow('Email Address',   d.email);
-      drawRow('Phone Number',    d.phone);
-      drawRow('Institution',     d.institution || 'Not specified');
-      drawRow('Grade / Class',   `Grade ${d.grade}`);
-      drawRow('Nationality',     d.nationality);
-      drawRow('MUN Experience',  d.experience);
+      drawRow('Full Name', d.name);
+      drawRow('Email Address', d.email);
+      drawRow('Phone Number', d.phone);
+      drawRow('Institution', d.institution || 'Not specified');
+      drawRow('Grade / Class', `Grade ${d.grade}`);
+      drawRow('Nationality', d.nationality);
+      drawRow('MUN Experience', d.experience);
       curY -= 8;
     }
   } else {
@@ -415,15 +415,15 @@ export async function buildRegistrationPdf(
 
     curY -= 4;
     drawSectionHeading('Teacher In Charge');
-    drawRow('Full Name',     reg.teacherName  || '—');
+    drawRow('Full Name', reg.teacherName || '—');
     drawRow('Email Address', reg.teacherEmail || '—');
-    drawRow('Phone Number',  reg.teacherPhone || '—');
+    drawRow('Phone Number', reg.teacherPhone || '—');
 
     curY -= 4;
     drawSectionHeading('Head Delegate');
-    drawRow('Full Name',     reg.headName  || '—');
+    drawRow('Full Name', reg.headName || '—');
     drawRow('Email Address', reg.headEmail || '—');
-    drawRow('Phone Number',  reg.headPhone || '—');
+    drawRow('Phone Number', reg.headPhone || '—');
 
     curY -= 8;
   }

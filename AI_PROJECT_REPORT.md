@@ -239,20 +239,46 @@ Currently implemented:
 
 ## 9. Status: Done / Not Done
 
-### Done
-- Full responsive landing page (desktop/laptop/tablet/mobile), all 10 sections.
-- Design system, dove motif, photo hero, full animation pass, eased smooth-scroll.
-- All nav/footer/CTA links verified against existing section IDs.
-- `tsc --noEmit` clean; `vite build` green.
+### Done — full stack (Phases 1–5 complete)
+- Full responsive landing page (all 10 sections), design system, dove motif, photo hero,
+  animation pass, eased smooth-scroll, countdown.
+- **Registration system**: `/register` (Individual single + double-DISEC, Institutional with
+  template download + spreadsheet upload), R2 direct uploads, duplicate prevention, App-ID
+  `COMUN26-XXXXXX`, confirmation email (Brevo), success screen with PDF download.
+- **PDF + retrieve**: dynamic PDF (logo + dove watermark + details + amount + instructions)
+  generated on the fly (never stored); public `/retrieve` (App ID + phone).
+- **Registration ON/OFF**: admin toggle → every Register CTA flips to "Registrations Closed".
+- **Contact form** → stored in DB (`/api/contact`); admin inbox with read/unread + delete.
+- **Resources**: public section renders enabled CMS resources dynamically (static fallback);
+  admin CMS = categories + upload/replace/toggle/delete to R2.
+- **Admin panel** (`/admin`): login (JWT, 5h session timer), dashboard + recharts trend,
+  registrations (search/filter/view/delete + R2 cleanup), resources CMS, messages, settings,
+  activity logs.
+- **Super Admin**: create admins (auto username + generated password), reset password,
+  enable/disable, login + activity logs, no session timeout.
+- **Backend**: 18 Netlify Functions + shared libs; Prisma schema pushed to Neon; super admin
+  seeded. `tsc --noEmit` (frontend + functions) clean; `vite build` green.
 
-### NOT done (placeholders — wired for the future, no backend)
-- **Registration**: cards are placeholders ("Registration opens soon"); CTAs are no-ops.
-  Future: dedicated pages + API.
-- **Contact form** (`ContactSection`): simulates submit with a `setTimeout`; no real POST.
-- **Resources**: items marked "coming soon" except one external link (UN Digital Library).
-- **No backend**: `api/`, `lib/`, `prisma/` are boilerplate. `utils/api.ts` + `utils/auth.ts`
-  are ready for JWT-based integration but unused.
-- Committee detail/descriptions, FAQ content expansion, admin/finance/CMS/payments — future.
+### Deferred / future (out of current scope)
+- Brevo/R2 only run once their env vars are set on Netlify (code is complete + inert without).
+- Committee detail pages, finance module, payments — future phases.
+
+### Admin routes
+`/admin/login`, `/admin` (dashboard), `/admin/registrations`, `/admin/resources`,
+`/admin/messages`, `/admin/settings`, `/admin/logs`, `/admin/admins` (super only).
+First login: seeded super admin — username `superadmin`, password = `SUPERADMIN_PASSWORD`
+from `.env` (change on first login).
+
+---
+
+## 9b. Deploy Checklist
+- **Vercel (frontend)**: set `VITE_API_BASE_URL=https://api.cottonsmun26.com/.netlify/functions`.
+- **Netlify (backend)**: set `DATABASE_URL`, `JWT_SECRET`, `ADMIN_SESSION_HOURS`, all `R2_*`,
+  `BREVO_SMTP_*`, `EMAIL_FROM`, `PUBLIC_SITE_URL=https://cottonsmun26.com`.
+- **Cloudflare DNS**: `cottonsmun26.com`→Vercel, `api.cottonsmun26.com`→Netlify, `www`→root.
+- Run `npm run db:seed` once against production Neon (creates the super admin) if not done.
+- Smoke test: load `/`, submit a test registration, download its PDF via `/retrieve`, log in
+  at `/admin/login`, toggle registration in Settings → confirm public Register button flips.
 
 ---
 

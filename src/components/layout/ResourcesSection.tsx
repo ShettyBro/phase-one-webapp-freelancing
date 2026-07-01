@@ -1,7 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Download } from 'lucide-react';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
 import { smoothScrollTo } from '../../utils/scroll';
+import api from '../../utils/api';
+
+// ─── Dynamic (CMS) resource types ──────────────────────────────────────────
+interface PublicResource { id: string; title: string; description: string | null; fileName: string | null; url: string | null; }
+interface PublicCategory { id: string; name: string; resources: PublicResource[]; }
+
+const DynamicResourceCard: React.FC<{ resource: PublicResource; index: number }> = ({ resource, index }) => (
+  <motion.a
+    href={resource.url || '#'}
+    target="_blank"
+    rel="noopener noreferrer"
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '-60px' }}
+    transition={{ duration: 0.6, delay: 0.07 * (index % 3), ease: [0.22, 1, 0.36, 1] }}
+    whileHover={{ y: -4 }}
+    className="group relative overflow-hidden flex flex-col gap-4 p-6 border border-comun-gold/20 hover:border-comun-gold/45 bg-comun-gold/5 rounded-md transition-all duration-300"
+    style={{ backdropFilter: 'blur(8px)' }}
+  >
+    <div className="flex items-start justify-between gap-3">
+      <span className="text-3xl">📄</span>
+      <Download className="w-4 h-4 text-comun-gold/70 group-hover:text-comun-gold transition-colors" />
+    </div>
+    <h3 className="font-sans font-semibold text-base text-comun-white group-hover:text-comun-gold transition-colors">{resource.title}</h3>
+    {resource.description && <p className="font-sans text-sm text-comun-muted leading-relaxed">{resource.description}</p>}
+    <span className="font-sans text-[11px] text-comun-gold/60 tracking-wider mt-auto pt-1 uppercase">Download</span>
+  </motion.a>
+);
 
 // ─── Resource types ───────────────────────────────────────────────────────
 const RESOURCES = [
@@ -182,7 +211,19 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index }) => {
 };
 
 // ─── Resources Section ────────────────────────────────────────────────────
-const ResourcesSection: React.FC = () => (
+const ResourcesSection: React.FC = () => {
+  const [categories, setCategories] = useState<PublicCategory[]>([]);
+
+  useEffect(() => {
+    api
+      .get('/resources-public')
+      .then(({ data }) => setCategories(data.categories || []))
+      .catch(() => setCategories([]));
+  }, []);
+
+  const hasDynamic = categories.some((c) => c.resources.length > 0);
+
+  return (
   <SectionContainer
     id="resources"
     className="bg-gradient-to-b from-comun-charcoal/40 to-comun-black relative"
@@ -209,12 +250,30 @@ const ResourcesSection: React.FC = () => (
         subtitle="All official conference materials — background guides, templates, rules of procedure, and study resources — will be published here ahead of CoMUN 2026."
       />
 
-      {/* Resource Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {RESOURCES.map((resource, i) => (
-          <ResourceCard key={resource.title} resource={resource} index={i} />
-        ))}
-      </div>
+      {/* Dynamic CMS resources (only enabled ones) — falls back to the static
+          showcase until the Secretariat publishes materials. */}
+      {hasDynamic ? (
+        <div className="flex flex-col gap-10">
+          {categories
+            .filter((c) => c.resources.length > 0)
+            .map((cat) => (
+              <div key={cat.id}>
+                <h3 className="font-serif-display text-xl text-comun-gold mb-4">{cat.name}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {cat.resources.map((r, i) => (
+                    <DynamicResourceCard key={r.id} resource={r} index={i} />
+                  ))}
+                </div>
+              </div>
+            ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {RESOURCES.map((resource, i) => (
+            <ResourceCard key={resource.title} resource={resource} index={i} />
+          ))}
+        </div>
+      )}
 
       {/* Notification banner */}
       <motion.div
@@ -243,6 +302,7 @@ const ResourcesSection: React.FC = () => (
       </motion.div>
     </div>
   </SectionContainer>
-);
+  );
+};
 
 export default ResourcesSection;
