@@ -101,9 +101,9 @@ async function loadAsset(
 }
 
 // ─── Text helpers ─────────────────────────────────────────────────────────────
-/** Strip non-WinAnsi chars so StandardFonts don't throw. */
+/** Replace known non-ASCII with ASCII equivalents, then strip anything leftover. */
 const safe = (s: string) =>
-  s.replace(/[–—]/g, '-').replace(/[^\x20-\x7E]/g, '?');
+  s.replace(/[–—]/g, '-').replace(/•/g, '|').replace(/[^\x20-\x7E]/g, '');
 
 function wrap(text: string, font: PDFFont, size: number, maxW: number): string[] {
   const words = text.split(/\s+/);
@@ -182,21 +182,21 @@ export async function buildRegistrationPdf(
       borderColor: C_GOLD, borderWidth: 0.4,
     });
 
-    // Watermark — reuse pre-embedded image
+    // Dove decorative element — small, bottom-right corner, above footer bar
     if (imgDove) {
-      const dw = 360;
+      const dw = 100;
       const dh = (imgDove.height / imgDove.width) * dw;
       page.drawImage(imgDove, {
-        x: (PW - dw) / 2,
-        y: (PH - dh) / 2 + 10,
+        x: PW - MR - dw - 5,
+        y: 32,
         width: dw, height: dh,
-        opacity: 0.045,
+        opacity: 0.12,
       });
     }
 
     // Footer bar
     page.drawRectangle({ x: 0, y: 0, width: PW, height: 28, color: C_NAVY });
-    const footerLeft = safe('CoMUN 2026  •  Official Delegate Record');
+    const footerLeft = 'CoMUN 2026  |  Official Delegate Record';
     page.drawText(footerLeft, {
       x: ML, y: 9, size: 7.5, font: fSansBold, color: C_GOLD,
     });
@@ -301,11 +301,11 @@ export async function buildRegistrationPdf(
     x: textX, y: curY - 20,
     size: 15, font: fSerifBold, color: C_NAVY,
   });
-  page.drawText('CoMUN 2026  •  Official Entry Pass', {
+  page.drawText('CoMUN 2026  |  Official Entry Pass', {
     x: textX, y: curY - 36,
     size: 9.5, font: fSansBold, color: C_MAROON,
   });
-  page.drawText('Dates: 30 July – 1 August 2026', {
+  page.drawText('Dates: 30 July - 1 August 2026', {
     x: textX, y: curY - 52,
     size: 9, font: fSerif, color: C_MUTED,
   });
@@ -360,7 +360,7 @@ export async function buildRegistrationPdf(
   const amtX = ML + CARD_W + GAP;
   const amtStr = reg.amountPayable > 0
     ? `${CURRENCY} ${reg.amountPayable.toLocaleString()}`
-    : 'At desk — per delegate';
+    : 'At desk - per delegate';
   page.drawRectangle({
     x: amtX, y: curY - CARD_H, width: CARD_W, height: CARD_H,
     color: rgb(0.970, 0.975, 0.990), borderColor: C_NAVY, borderWidth: 1,
@@ -378,7 +378,7 @@ export async function buildRegistrationPdf(
 
   // ── Registration Details ─────────────────────────────────────────────────────
   const typeLabel = reg.type === 'INDIVIDUAL'
-    ? `Individual — ${reg.delegationType === 'DOUBLE' ? 'Double' : 'Single'} Delegation`
+    ? `Individual - ${reg.delegationType === 'DOUBLE' ? 'Double' : 'Single'} Delegation`
     : 'Institutional';
 
   drawSectionHeading('Registration Details');
@@ -395,7 +395,7 @@ export async function buildRegistrationPdf(
     const sorted = [...reg.delegates].sort((a, b) => a.position - b.position);
     for (const d of sorted) {
       const heading = sorted.length > 1
-        ? `Delegate ${d.position} — ${d.name.trim() || 'Information'}`
+        ? `Delegate ${d.position} - ${d.name.trim() || 'Information'}`
         : 'Delegate Information';
       drawSectionHeading(heading);
       drawRow('Full Name',       d.name);
