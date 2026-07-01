@@ -60,6 +60,48 @@ const UnoLinkCard: React.FC<{ index: number }> = ({ index }) => (
   </motion.a>
 );
 
+// ─── Permanent Delegate Matrix card (always shown) ────────────────────────
+const DelegateMatrixCard: React.FC<{ index: number }> = ({ index }) => (
+  <motion.a
+    href="https://docs.google.com/spreadsheets/d/1ZRD-0pNNnbINPATENWJVl-J8bwMDZXFQIc3rZrQ4fis/edit?usp=sharing"
+    target="_blank"
+    rel="noopener noreferrer"
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '-60px' }}
+    transition={{ duration: 0.6, delay: 0.07 * (index % 3), ease: [0.22, 1, 0.36, 1] }}
+    whileHover={{ y: -4 }}
+    className="group relative overflow-hidden flex flex-col gap-4 p-6 border border-comun-gold/20 hover:border-comun-gold/50 bg-comun-gold/5 hover:bg-comun-gold/8 rounded-md transition-all duration-300 cursor-pointer"
+    style={{ backdropFilter: 'blur(8px)' }}
+  >
+    <div className="absolute inset-0 bg-comun-gold/0 group-hover:bg-comun-gold/4 transition-colors duration-300 pointer-events-none rounded-md" />
+    <div className="relative flex items-start justify-between gap-3">
+      <span className="text-3xl">📊</span>
+      <span className="font-sans text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-sm">
+        Available
+      </span>
+    </div>
+    <div className="relative flex flex-col gap-2 flex-1">
+      <h3 className="font-sans font-semibold text-base text-comun-white group-hover:text-comun-gold transition-colors duration-300">
+        CoMUN Delegate Matrix
+      </h3>
+      <p className="font-sans text-sm text-comun-muted leading-relaxed">
+        Official committee–country allocation matrix for CoMUN 2026. View which countries and portfolios are available across all committees.
+      </p>
+      <div className="flex items-center gap-1.5 mt-auto pt-2">
+        <span className="font-sans text-[10px] text-comun-gold/60 border border-comun-gold/15 px-2 py-0.5 rounded-sm">Google Sheets</span>
+      </div>
+    </div>
+    <div className="relative flex items-center gap-2 pt-1">
+      <ExternalLink className="w-3.5 h-3.5 text-comun-gold/60 group-hover:text-comun-gold transition-colors" />
+      <span className="font-sans text-xs font-medium text-comun-gold/70 group-hover:text-comun-gold tracking-widest uppercase transition-colors">
+        View Matrix
+      </span>
+    </div>
+  </motion.a>
+);
+
+
 // ─── Dynamic CMS resource card ────────────────────────────────────────────
 const DynamicResourceCard: React.FC<{ resource: PublicResource; index: number }> = ({ resource, index }) => (
   <motion.a
@@ -168,6 +210,7 @@ const ResourcesSection: React.FC = () => {
                   <h3 className="font-serif-display text-xl text-comun-gold mb-4">External Links</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     <UnoLinkCard index={0} />
+                    <DelegateMatrixCard index={1} />
                   </div>
                 </div>
               </div>
@@ -175,6 +218,7 @@ const ResourcesSection: React.FC = () => {
               /* ── No CMS resources yet — show only the UNO link ── */
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 <UnoLinkCard index={0} />
+                <DelegateMatrixCard index={1} />
               </div>
             )}
 

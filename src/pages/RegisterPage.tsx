@@ -1,26 +1,30 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, User, Building2, Users, UserRound, Lock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, User, Building2, Users, UserRound, Lock, ChevronRight, Download, FileSpreadsheet } from 'lucide-react';
 import { IndividualForm } from '../components/registration/IndividualForm';
 import { InstitutionalForm } from '../components/registration/InstitutionalForm';
 import { RegistrationSuccess } from '../components/registration/RegistrationSuccess';
 import { useRegistration } from '../context/RegistrationContext';
 import type { RegistrationResult } from '../utils/registrationApi';
 
-type Step = 'type' | 'delegation' | 'individual' | 'institutional' | 'success';
+type Step = 'type' | 'delegation' | 'individual' | 'inst-template' | 'institutional' | 'success';
 type Delegation = 'SINGLE' | 'DOUBLE';
+
+// ─── Institutional spreadsheet template URL (served from publicDir) ───────────────
+const TEMPLATE_URL = '/Institution%20Delegation%20Registration%20Spreadsheet%20Template.xlsx';
 
 // ─── Step breadcrumb config ────────────────────────────────────────────────
 const STEP_LABELS: Partial<Record<Step, string>> = {
-  type:          'Choose Type',
-  delegation:    'Delegation',
-  individual:    'Details',
-  institutional: 'Details',
+  type:            'Choose Type',
+  delegation:      'Delegation',
+  'inst-template': 'Download Template',
+  individual:      'Details',
+  institutional:   'Details',
 };
 
-const STEPS_INDIVIDUAL = ['type', 'delegation', 'individual'];
-const STEPS_INSTITUTIONAL = ['type', 'institutional'];
+const STEPS_INDIVIDUAL    = ['type', 'delegation', 'individual'];
+const STEPS_INSTITUTIONAL = ['type', 'inst-template', 'institutional'];
 
 // ─── Choice Card ──────────────────────────────────────────────────────────
 interface ChoiceCardProps {
@@ -178,7 +182,8 @@ const RegisterPage: React.FC = () => {
     setDuplicateId(null);
     if (step === 'delegation') setStep('type');
     else if (step === 'individual') setStep('delegation');
-    else if (step === 'institutional') setStep('type');
+    else if (step === 'inst-template') setStep('type');
+    else if (step === 'institutional') setStep('inst-template');
   };
 
   const showStepBar = isOpen && !duplicateId && step !== 'success';
@@ -334,7 +339,7 @@ const RegisterPage: React.FC = () => {
                   icon={<Building2 className="w-6 h-6" />}
                   title="Institutional Registration"
                   description="Register a school or college delegation of multiple delegates under a faculty advisor."
-                  onClick={() => { setFlowType('institutional'); setStep('institutional'); }}
+                  onClick={() => { setFlowType('institutional'); setStep('inst-template'); }}
                 />
               </div>
 
@@ -393,6 +398,68 @@ const RegisterPage: React.FC = () => {
                 onSuccess={onSuccess}
                 onDuplicate={onDuplicate}
               />
+            </motion.div>
+
+          ) : step === 'inst-template' ? (
+            <motion.div
+              key="inst-template"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45 }}
+              className="flex flex-col gap-6"
+            >
+              {/* Header */}
+              <div className="text-center">
+                <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-2">Step 1 of 2</p>
+                <h2 className="font-serif-display text-2xl md:text-3xl text-comun-white mb-3">Download Delegation Template</h2>
+                <p className="font-sans text-sm text-comun-muted max-w-lg mx-auto leading-relaxed">
+                  Before filling the registration form, download and complete the official delegation spreadsheet template.
+                  You will need to upload the filled file during registration.
+                </p>
+              </div>
+
+              {/* Template card */}
+              <div className="border border-comun-gold/25 bg-comun-gold/[0.04] rounded-md p-7 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                <div className="w-14 h-14 flex items-center justify-center bg-comun-gold/10 border border-comun-gold/25 rounded-sm flex-shrink-0">
+                  <FileSpreadsheet className="w-7 h-7 text-comun-gold" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-1">Required Template</p>
+                  <h3 className="font-sans font-semibold text-comun-white text-base mb-1">Institution Delegation Registration Spreadsheet</h3>
+                  <p className="font-sans text-sm text-comun-muted">
+                    Fill in all delegate details for your institution — name, grade, experience, committee preference, etc.
+                    Upload the completed file in the next step.
+                  </p>
+                </div>
+                <a
+                  href={TEMPLATE_URL}
+                  download
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-comun-gold text-comun-black font-sans font-bold text-sm rounded-sm hover:bg-comun-gold-light transition-colors flex-shrink-0"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Template
+                </a>
+              </div>
+
+              {/* Instructions */}
+              <div className="border border-white/8 bg-white/[0.02] rounded-md p-5">
+                <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-3">Instructions</p>
+                <ol className="font-sans text-sm text-comun-muted space-y-2 list-decimal list-inside">
+                  <li>Download the Excel template above.</li>
+                  <li>Fill in the details for <strong className="text-comun-white/80">each delegate</strong> from your institution.</li>
+                  <li>Save the filled file — you will upload it in the next step.</li>
+                  <li>Proceed to fill in your teacher and head delegate contact information.</li>
+                </ol>
+              </div>
+
+              {/* Continue button */}
+              <button
+                onClick={() => setStep('institutional')}
+                className="btn-primary py-3.5 text-sm w-full sm:w-auto sm:self-end"
+              >
+                I've Downloaded the Template — Continue to Registration →
+              </button>
             </motion.div>
 
           ) : step === 'institutional' ? (

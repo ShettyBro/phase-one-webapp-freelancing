@@ -1,21 +1,33 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, MapPin, Clock } from 'lucide-react';
+import { Mail, MapPin, Clock, Phone, Instagram } from 'lucide-react';
 import { SectionContainer, SectionHeader } from '../ui/SectionContainer';
 import { DoveAccent } from '../ui/DoveAccent';
 import { CONFERENCE } from '../../data/comun';
 import api from '../../utils/api';
 
+// ── Contact data ─────────────────────────────────────────────────────────────
+const STUDENT_COORDINATORS = [
+  { role: 'Head of CoMUN', name: 'Ayush Prem', phone: '+91 8618080517' },
+  { role: 'Communications', name: 'Thavanes Kanakaraj', phone: '+91 8867933396' },
+  { role: 'Hospitality', name: 'Dhruv Kulkarni', phone: '+91 9980954225' },
+];
+
+const FACULTY = [
+  { name: 'Mrs. Mercy Stanley', phone: '+91 9742175540' },
+  { name: 'Mrs. Tabassum Ali', phone: '+91 98440 87602' },
+  { name: 'Mrs. Sandra Vijaya Anchan', phone: '+91 94805 10509' },
+];
+
 const ContactSection: React.FC = () => {
   const [form, setForm]     = useState({ name: '', email: '', message: '' });
   const [sent, setSent]     = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
-
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,24 +42,6 @@ const ContactSection: React.FC = () => {
       setLoading(false);
     }
   };
-
-  const INFO = [
-    {
-      icon: <Mail className="w-5 h-5" />,
-      label: 'Email',
-      value: 'comun2026@cottons.edu',
-    },
-    {
-      icon: <MapPin className="w-5 h-5" />,
-      label: 'Venue',
-      value: 'Cottons Campus',
-    },
-    {
-      icon: <Clock className="w-5 h-5" />,
-      label: 'Conference Dates',
-      value: CONFERENCE.dates,
-    },
-  ];
 
   return (
     <SectionContainer
@@ -68,52 +62,106 @@ const ContactSection: React.FC = () => {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-          {/* Contact Info */}
+          {/* ── Contact Info panel ── */}
           <motion.div
             initial={{ opacity: 0, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-60px' }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-2 flex flex-col gap-6"
+            className="lg:col-span-2 flex flex-col gap-4"
           >
-            <div className="flex flex-col gap-5">
-              {INFO.map(item => (
-                <div
-                  key={item.label}
-                  className="flex items-start gap-4 glass gold-border p-4"
-                >
-                  <div className="w-10 h-10 flex items-center justify-center border border-comun-gold/20 text-comun-gold flex-shrink-0">
-                    {item.icon}
-                  </div>
-                  <div>
-                    <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-1">
-                      {item.label}
-                    </p>
-                    <p className="font-sans text-sm text-comun-white/80">{item.value}</p>
-                  </div>
-                </div>
-              ))}
+            {/* Email */}
+            <div className="flex items-start gap-4 glass gold-border p-4">
+              <div className="w-10 h-10 flex items-center justify-center border border-comun-gold/20 text-comun-gold flex-shrink-0">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-1">Official Email</p>
+                <a href="mailto:cottonsmun2026@gmail.com" className="font-sans text-sm text-comun-white/80 hover:text-comun-gold transition-colors">
+                  cottonsmun2026@gmail.com
+                </a>
+              </div>
             </div>
 
-            {/* Social placeholder */}
-            <div className="glass gold-border p-5 mt-2">
-              <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-3">
-                Follow CoMUN
-              </p>
-              <div className="flex gap-3">
-                {['Instagram', 'LinkedIn', 'Twitter'].map(s => (
-                  <span
-                    key={s}
-                    className="font-sans text-xs text-comun-muted border border-comun-gold/10 px-3 py-1.5 hover:border-comun-gold/30 hover:text-comun-gold transition-colors cursor-pointer"
-                  >
-                    {s}
-                  </span>
+            {/* Address */}
+            <div className="flex items-start gap-4 glass gold-border p-4">
+              <div className="w-10 h-10 flex items-center justify-center border border-comun-gold/20 text-comun-gold flex-shrink-0">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-1">Address</p>
+                <p className="font-sans text-sm text-comun-white/80 leading-relaxed">
+                  15, Residency Rd, Shanthala Nagar,<br />
+                  Ashok Nagar, Bengaluru,<br />
+                  Karnataka – 560025
+                </p>
+              </div>
+            </div>
+
+            {/* Conference dates */}
+            <div className="flex items-start gap-4 glass gold-border p-4">
+              <div className="w-10 h-10 flex items-center justify-center border border-comun-gold/20 text-comun-gold flex-shrink-0">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-1">Conference Dates</p>
+                <p className="font-sans text-sm text-comun-white/80">{CONFERENCE.dates}</p>
+              </div>
+            </div>
+
+            {/* Student coordinators */}
+            <div className="glass gold-border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Phone className="w-4 h-4 text-comun-gold/70" />
+                <p className="font-sans text-xs text-comun-gold/70 uppercase tracking-widest">Student Co-ordinators</p>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {STUDENT_COORDINATORS.map(c => (
+                  <div key={c.name} className="border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                    <p className="font-sans text-[11px] text-comun-gold/60 uppercase tracking-wider">{c.role}</p>
+                    <p className="font-sans text-sm text-comun-white/85">{c.name}</p>
+                    <a href={`tel:${c.phone.replace(/\s/g, '')}`} className="font-sans text-xs text-comun-muted hover:text-comun-gold transition-colors">
+                      {c.phone}
+                    </a>
+                  </div>
                 ))}
               </div>
             </div>
+
+            {/* Faculty */}
+            <div className="glass gold-border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Phone className="w-4 h-4 text-comun-gold/70" />
+                <p className="font-sans text-xs text-comun-gold/70 uppercase tracking-widest">Faculty</p>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {FACULTY.map(f => (
+                  <div key={f.name} className="border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                    <p className="font-sans text-sm text-comun-white/85">{f.name}</p>
+                    <a href={`tel:${f.phone.replace(/\s/g, '')}`} className="font-sans text-xs text-comun-muted hover:text-comun-gold transition-colors">
+                      {f.phone}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Instagram */}
+            <div className="glass gold-border p-4">
+              <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-3">Follow CoMUN</p>
+              <a
+                href="https://instagram.com/cottonsmun2026"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-sans text-sm text-comun-white/80 hover:text-comun-gold transition-colors"
+              >
+                <Instagram className="w-4 h-4" />
+                @cottonsmun2026
+              </a>
+            </div>
           </motion.div>
 
-          {/* Contact Form */}
+          {/* ── Contact Form ── */}
           <motion.div
             initial={{ opacity: 0, x: 24 }}
             whileInView={{ opacity: 1, x: 0 }}
