@@ -10,7 +10,7 @@
 [functions]
   node_bundler = "esbuild"
   # Ship the Prisma query engine + schema so functions can reach the DB.
-  included_files = ["node_modules/.prisma/client/**", "prisma/schema.prisma"]
+  included_files = ["node_modules/.prisma/client/**", "prisma/schema.prisma", "src/public/logo.png", "src/public/dove_peace.png"]
 
 # REST API → Netlify Functions (keeps the frontend axios baseURL '/api')
 [[redirects]]

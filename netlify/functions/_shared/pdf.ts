@@ -196,7 +196,7 @@ export async function buildRegistrationPdf(
 
     // Footer bar
     page.drawRectangle({ x: 0, y: 0, width: PW, height: 28, color: C_NAVY });
-    const footerLeft = 'CoMUN 2026  |  Official Delegate Record';
+    const footerLeft = 'CoMUN 2026  |  Official Delegate Record  |  v2.1';
     page.drawText(footerLeft, {
       x: ML, y: 9, size: 7.5, font: fSansBold, color: C_GOLD,
     });
