@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
 import {
   LayoutDashboard, Users, FolderOpen, Mail, Settings as SettingsIcon,
   ScrollText, ShieldCheck, LogOut, Clock, Menu, X,
@@ -63,12 +63,24 @@ const SidebarNav: React.FC<{ isSuperAdmin: boolean; onNav?: () => void }> = ({ i
 
 const AdminLayout: React.FC = () => {
   const { admin, isSuperAdmin, msUntilExpiry, logout } = useAdminAuth();
-  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const mountedRef = React.useRef(false);
+
+  // When admin becomes null AFTER initial mount (logout or session expiry),
+  // forcefully redirect to login. window.location.replace is used so the
+  // browser history entry is replaced and the back button cannot return here.
+  useEffect(() => {
+    if (mountedRef.current && admin === null) {
+      window.location.replace('/admin/login');
+    }
+    mountedRef.current = true;
+  }, [admin]);
 
   const handleLogout = async () => {
     await logout();
-    navigate('/admin/login', { replace: true });
+    // Use window.location.replace (not React Router navigate) so the redirect
+    // fires even if AdminLayout unmounts before navigate() can execute.
+    window.location.replace('/admin/login');
   };
 
   return (
