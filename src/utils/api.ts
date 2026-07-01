@@ -26,6 +26,10 @@ api.interceptors.response.use(
   (error) => {
     if (error?.response?.status === 401) {
       clearSession();
+      // Redirect to login only when inside an admin route — don't disrupt public pages.
+      if (window.location.pathname.startsWith('/admin') && !window.location.pathname.startsWith('/admin/login')) {
+        window.location.replace('/admin/login');
+      }
     }
     return Promise.reject(error);
   }

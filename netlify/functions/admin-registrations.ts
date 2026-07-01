@@ -54,11 +54,13 @@ export const handler: Handler = async (event) => {
         ];
       }
 
+      const take = Math.min(500, Math.max(1, Number(event.queryStringParameters?.take) || 500));
+
       const list = await prisma.registration.findMany({
         where,
         orderBy: { submittedAt: 'desc' },
         include: { delegates: { select: { name: true, email: true, phone: true }, orderBy: { position: 'asc' } } },
-        take: 500,
+        take,
       });
 
       const rows = list.map((r) => ({

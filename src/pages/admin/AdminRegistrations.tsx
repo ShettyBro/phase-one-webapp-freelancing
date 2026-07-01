@@ -2,7 +2,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Search, Eye, Trash2, X, FileDown, Download, Table2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../utils/api';
+import { getToken } from '../../utils/auth';
 import { AdminPageHeader, AdminCard, Spinner, EmptyState, ConfirmDialog } from '../../components/admin/AdminUI';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 interface RegRow {
   id: string;
@@ -190,11 +193,15 @@ const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete: () =>
   const downloadPdf = async () => {
     setPdfLoading(true);
     try {
-      const res = await api.get('/admin-registration-pdf', {
-        params: { id: regId },
-        responseType: 'blob',
+      // Use raw fetch — the shared api instance sends Content-Type:application/json
+      // which corrupts binary (PDF) responses. Raw fetch avoids that header.
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/admin-registration-pdf?id=${regId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      if (!res.ok) throw new Error('PDF generation failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = `${detail.applicationId}.pdf`; a.click();
       URL.revokeObjectURL(url);

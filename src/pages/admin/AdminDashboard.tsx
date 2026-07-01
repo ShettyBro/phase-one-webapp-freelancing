@@ -47,11 +47,10 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     Promise.all([
       api.get('/admin-dashboard'),
-      api.get('/admin-registrations'),
+      api.get('/admin-registrations', { params: { take: 5 } }),
     ]).then(([dash, regs]) => {
       setData(dash.data);
-      // Take 5 most recent
-      setRecent((regs.data.registrations as RecentReg[]).slice(0, 5));
+      setRecent(regs.data.registrations as RecentReg[]);
     }).finally(() => setLoading(false));
   }, []);
 
