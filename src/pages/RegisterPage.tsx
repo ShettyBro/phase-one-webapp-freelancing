@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, User, Building2, Users, UserRound, Lock, ChevronRight } from 'lucide-react';
 import { IndividualForm } from '../components/registration/IndividualForm';
 import { InstitutionalForm } from '../components/registration/InstitutionalForm';
@@ -27,13 +27,11 @@ interface ChoiceCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  badge?: string;
   onClick: () => void;
   index: number;
-  featured?: boolean;
 }
 
-const ChoiceCard: React.FC<ChoiceCardProps> = ({ icon, title, description, badge, onClick, index, featured }) => (
+const ChoiceCard: React.FC<ChoiceCardProps> = ({ icon, title, description, onClick, index }) => (
   <motion.button
     type="button"
     onClick={onClick}
@@ -41,38 +39,32 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ icon, title, description, badge
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.55, delay: 0.1 * index, ease: [0.22, 1, 0.36, 1] }}
     whileHover={{ y: -5, scale: 1.015 }}
-    className={`group relative text-left flex flex-col gap-5 p-7 rounded-md overflow-hidden transition-all duration-300 ${
-      featured
-        ? 'border border-comun-gold/50 bg-gradient-to-br from-comun-gold/10 to-comun-gold-dark/5 shadow-gold'
-        : 'border border-comun-gold/15 bg-white/[0.03] hover:border-comun-gold/35 hover:bg-white/[0.05]'
-    }`}
+    className="group relative text-left flex flex-col gap-5 p-7 rounded-md overflow-hidden
+      border border-comun-gold/15 bg-white/[0.03]
+      hover:border-comun-gold/55 hover:bg-gradient-to-br hover:from-comun-gold/8 hover:to-comun-gold-dark/3
+      transition-all duration-300"
     style={{ backdropFilter: 'blur(12px)' }}
   >
-    {/* top accent line on featured */}
-    {featured && (
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-comun-gold-dark via-comun-gold to-comun-gold-dark" />
-    )}
+    {/* Gold top accent line — appears on hover */}
+    <div className="absolute top-0 left-0 right-0 h-0.5
+      bg-gradient-to-r from-comun-gold-dark via-comun-gold to-comun-gold-dark
+      opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-    {/* corner ornament */}
-    <div className="absolute top-4 right-4 w-7 h-7 border-t border-r border-comun-gold/20 group-hover:border-comun-gold/50 transition-colors duration-300" />
+    {/* Gold glow overlay — appears on hover */}
+    <div className="absolute inset-0 pointer-events-none rounded-md
+      opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      style={{ boxShadow: 'inset 0 0 40px rgba(255,208,0,0.06), 0 0 30px rgba(255,208,0,0.12)' }}
+    />
 
-    {/* icon row */}
-    <div className="flex items-start justify-between">
-      <div className="w-12 h-12 flex items-center justify-center border border-comun-gold/25 rounded-sm text-comun-gold group-hover:border-comun-gold/60 transition-colors">
-        {icon}
-      </div>
-      {badge && (
-        <span className={`font-sans text-[10px] font-bold tracking-[0.2em] uppercase px-2.5 py-1 ${
-          featured
-            ? 'bg-comun-gold/20 text-comun-gold border border-comun-gold/30'
-            : 'bg-white/5 text-comun-muted border border-white/10'
-        }`}>
-          {badge}
-        </span>
-      )}
+    {/* Corner ornament */}
+    <div className="absolute top-4 right-4 w-7 h-7 border-t border-r border-comun-gold/20 group-hover:border-comun-gold/55 transition-colors duration-300" />
+
+    {/* Icon */}
+    <div className="w-12 h-12 flex items-center justify-center border border-comun-gold/25 rounded-sm text-comun-gold group-hover:border-comun-gold/70 group-hover:bg-comun-gold/5 transition-all duration-300">
+      {icon}
     </div>
 
-    {/* text */}
+    {/* Text */}
     <div className="flex-1">
       <h3 className="font-serif-display text-2xl text-comun-white group-hover:text-gold-gradient transition-all duration-300 mb-2">
         {title}
@@ -80,8 +72,8 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ icon, title, description, badge
       <p className="font-sans text-sm text-comun-muted leading-relaxed">{description}</p>
     </div>
 
-    {/* cta row */}
-    <div className="flex items-center justify-between pt-4 border-t border-comun-gold/10">
+    {/* CTA row */}
+    <div className="flex items-center justify-between pt-4 border-t border-comun-gold/10 group-hover:border-comun-gold/25 transition-colors duration-300">
       <span className="font-sans text-xs tracking-widest uppercase text-comun-gold/60 group-hover:text-comun-gold transition-colors">
         Select
       </span>
@@ -151,13 +143,23 @@ const DuplicateNotice: React.FC<{ applicationId: string; onDismiss: () => void }
 // ─── Main Page ─────────────────────────────────────────────────────────────
 const RegisterPage: React.FC = () => {
   const { isOpen } = useRegistration();
-  const [step, setStep]           = useState<Step>('type');
+  const [searchParams] = useSearchParams();
+
+  // If a ?flow= param was passed from the homepage, jump directly to that flow
+  const initialFlow = searchParams.get('flow') as 'individual' | 'institutional' | null;
+  const [step, setStep]       = useState<Step>(() => {
+    if (initialFlow === 'individual')    return 'delegation';
+    if (initialFlow === 'institutional') return 'institutional';
+    return 'type';
+  });
   const [delegation, setDelegation] = useState<Delegation>('SINGLE');
-  const [result, setResult]       = useState<{ data: RegistrationResult; phone: string } | null>(null);
+  const [result, setResult]   = useState<{ data: RegistrationResult; phone: string } | null>(null);
   const [duplicateId, setDuplicateId] = useState<string | null>(null);
 
   // Determine which flow we're in based on step history
-  const [flowType, setFlowType] = useState<'individual' | 'institutional'>('individual');
+  const [flowType, setFlowType] = useState<'individual' | 'institutional'>(
+    initialFlow === 'institutional' ? 'institutional' : 'individual',
+  );
   const activeSteps = flowType === 'institutional' ? STEPS_INSTITUTIONAL : STEPS_INDIVIDUAL;
 
   const onSuccess = (data: RegistrationResult, phone: string) => {
@@ -206,7 +208,7 @@ const RegisterPage: React.FC = () => {
       </div>
 
       {/* ── Page Content ── */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 md:pt-32 pb-24">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 md:pt-24 pb-24">
 
         {/* Header */}
         <motion.div
@@ -325,8 +327,6 @@ const RegisterPage: React.FC = () => {
                   icon={<User className="w-6 h-6" />}
                   title="Individual Registration"
                   description="Register on your own as a delegate — choose single or double delegation in your preferred committee."
-                  badge="Most Popular"
-                  featured
                   onClick={() => { setFlowType('individual'); setStep('delegation'); }}
                 />
                 <ChoiceCard
@@ -334,7 +334,6 @@ const RegisterPage: React.FC = () => {
                   icon={<Building2 className="w-6 h-6" />}
                   title="Institutional Registration"
                   description="Register a school or college delegation of multiple delegates under a faculty advisor."
-                  badge="For Schools"
                   onClick={() => { setFlowType('institutional'); setStep('institutional'); }}
                 />
               </div>
@@ -369,8 +368,6 @@ const RegisterPage: React.FC = () => {
                   icon={<UserRound className="w-6 h-6" />}
                   title="Single Delegation"
                   description="Represent one portfolio in a committee of your choice. Open to all committees."
-                  badge="All Committees"
-                  featured
                   onClick={() => { setDelegation('SINGLE'); setStep('individual'); }}
                 />
                 <ChoiceCard
@@ -378,7 +375,6 @@ const RegisterPage: React.FC = () => {
                   icon={<Users className="w-6 h-6" />}
                   title="Double Delegation"
                   description="Two delegates share one portfolio together — available exclusively for DISEC."
-                  badge="DISEC Only"
                   onClick={() => { setDelegation('DOUBLE'); setStep('individual'); }}
                 />
               </div>

@@ -3,7 +3,8 @@ import { prisma } from './_shared/prisma';
 import { fail, preflight, CORS } from './_shared/http';
 import { buildRegistrationPdf, type PdfRegistration } from './_shared/pdf';
 
-const normalizePhone = (p: string) => p.replace(/[\s-]/g, '').replace(/^\+/, '');
+/** Strip everything except digits, then take the last 10 — handles +91 / 91 / 0 prefixes. */
+const normalizePhone = (p: string) => p.replace(/\D/g, '').slice(-10);
 
 /**
  * GET /api/registration-pdf?applicationId=...&phone=...

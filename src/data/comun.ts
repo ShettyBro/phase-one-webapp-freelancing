@@ -130,41 +130,27 @@ export const FEATURES = [
   },
 ] as const;
 
-// ─── Registration Types ───────────────────────────────────────────────────
+// ─── Registration Types ─────────────────────────────────────────────────────
 export const REGISTRATION_TYPES = [
-  {
-    type: 'Institutional',
-    icon: '🏫',
-    title: 'Institutional Registration',
-    description:
-      'For schools and universities registering a delegation of multiple delegates under a faculty advisor.',
-    badge: 'For Schools',
-    highlights: ['Bulk delegate slots', 'Faculty advisor access', 'Dedicated support', 'Group accommodation priority'],
-    cta: 'Register Institution',
-    accent: 'from-blue-800/30 to-blue-900/10',
-  },
   {
     type: 'Individual',
     icon: '👤',
     title: 'Individual Registration',
     description:
       'For students registering independently to represent a nation or role in their chosen committee.',
-    badge: 'Most Popular',
     highlights: ['All committees available', 'Flexible committee selection', 'Certificate of participation', 'Networking opportunities'],
     cta: 'Register as Delegate',
     accent: 'from-comun-gold/20 to-comun-gold-dark/10',
-    featured: true,
   },
   {
-    type: 'Special',
-    icon: '📰',
-    title: 'Special Committee Registration',
+    type: 'Institutional',
+    icon: '🏫',
+    title: 'Institutional Registration',
     description:
-      'For delegates interested in IPC (Journalism or Photography) or the Cabinet Crisis Committee.',
-    badge: 'Limited Seats',
-    highlights: ['IPC – Journalism', 'IPC – Photography', 'Crisis simulation', 'Specialized training'],
-    cta: 'Register for Special',
-    accent: 'from-purple-800/30 to-purple-900/10',
+      'For schools and universities registering a delegation of multiple delegates under a faculty advisor.',
+    highlights: ['Bulk delegate slots', 'Faculty advisor access', 'Dedicated support', 'Group accommodation priority'],
+    cta: 'Register Institution',
+    accent: 'from-comun-gold/20 to-comun-gold-dark/10',
   },
 ] as const;
 

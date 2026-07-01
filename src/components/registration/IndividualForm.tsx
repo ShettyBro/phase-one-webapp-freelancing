@@ -147,7 +147,9 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
             value={committee}
             onChange={setCommittee}
             placeholder="Select a committee"
-            options={COMMITTEES.map((c) => ({ value: c.code, label: `${c.name} — ${c.fullName}` }))}
+            options={COMMITTEES
+              .filter((c) => c.code !== DOUBLE_COMMITTEE)
+              .map((c) => ({ value: c.code, label: `${c.name} — ${c.fullName}` }))}
           />
         )}
         <FormField label="Portfolio Preference" name="portfolio" required value={portfolio} onChange={setPortfolio} placeholder="e.g. country / role" />

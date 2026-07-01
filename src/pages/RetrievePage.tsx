@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { Download, Loader2, FileText, CheckCircle2 } from 'lucide-react';
 import { FormField } from '../components/ui/FormField';
 import { downloadRegistrationPdf } from '../utils/pdfApi';
@@ -41,7 +40,7 @@ const RetrievePage: React.FC = () => {
   };
 
   return (
-    <main className="relative min-h-screen pt-28 md:pt-32 pb-24 px-4 sm:px-6">
+    <main className="relative min-h-screen pt-20 md:pt-24 pb-24 px-4 sm:px-6">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
           <span className="font-sans text-xs font-semibold tracking-[0.25em] uppercase text-comun-gold/80">Retrieve</span>
@@ -87,9 +86,6 @@ const RetrievePage: React.FC = () => {
           )}
         </motion.div>
 
-        <p className="text-center mt-6">
-          <Link to="/" className="font-sans text-xs text-comun-muted hover:text-comun-gold transition-colors">← Back to Home</Link>
-        </p>
       </div>
     </main>
   );
