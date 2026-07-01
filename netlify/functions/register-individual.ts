@@ -115,12 +115,31 @@ export const handler: Handler = async (event) => {
     });
 
     // Confirmation email to the primary delegate (best-effort).
+    const d2 = isDouble ? delegates[1] : null;
     await sendRegistrationConfirmation(emails[0], {
       applicationId: created.applicationId,
       name: delegates[0].name!.trim(),
       registrationType: `Individual — ${isDouble ? 'Double' : 'Single'} Delegation`,
       committee: body.committee,
+      portfolio: body.portfolio?.trim(),
+      delegationType: body.delegationType,
+      delegate2Name: d2?.name?.trim() ?? null,
+      amountPayable,
     }).catch((e) => console.error('email failed:', e));
+
+    // For double delegation also notify the second delegate.
+    if (isDouble && d2 && emails[1] && emails[1] !== emails[0]) {
+      await sendRegistrationConfirmation(emails[1], {
+        applicationId: created.applicationId,
+        name: d2.name!.trim(),
+        registrationType: 'Individual — Double Delegation',
+        committee: body.committee,
+        portfolio: body.portfolio?.trim(),
+        delegationType: 'DOUBLE',
+        delegate2Name: delegates[0].name!.trim(),
+        amountPayable,
+      }).catch((e) => console.error('email failed (delegate 2):', e));
+    }
 
     return ok({
       applicationId: created.applicationId,

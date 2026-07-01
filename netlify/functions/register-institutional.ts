@@ -2,7 +2,7 @@ import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
 import { ok, fail, preflight, parseBody } from './_shared/http';
 import { generateUniqueApplicationId } from './_shared/applicationId';
-import { sendRegistrationConfirmation } from './_shared/email';
+import { sendInstitutionalConfirmation } from './_shared/email';
 import { isEmail, isPhone, nonEmpty, validateFileRef, type FileRef } from './_shared/validation';
 import { FEES } from './_shared/domain';
 
@@ -93,11 +93,20 @@ export const handler: Handler = async (event) => {
       select: { applicationId: true },
     });
 
-    await sendRegistrationConfirmation(teacherEmail, {
-      applicationId: created.applicationId,
-      name: body.teacher!.name!.trim(),
-      registrationType: 'Institutional',
-    }).catch((e) => console.error('email failed:', e));
+    // Confirmation emails — teacher + head delegate (best-effort).
+    await sendInstitutionalConfirmation(
+      teacherEmail,
+      body.head?.email?.trim().toLowerCase() || null,
+      {
+        applicationId: created.applicationId,
+        name: body.teacher!.name!.trim(),
+        registrationType: 'Institutional',
+        institutionName: body.institutionName!.trim(),
+        headName: body.head!.name!.trim(),
+        headEmail: body.head!.email!.trim().toLowerCase(),
+        amountPayable: FEES.INSTITUTIONAL,
+      },
+    ).catch((e) => console.error('email failed:', e));
 
     return ok({
       applicationId: created.applicationId,
