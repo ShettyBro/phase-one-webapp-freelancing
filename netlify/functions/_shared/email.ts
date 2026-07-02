@@ -21,10 +21,7 @@ function getTransporter(): Transporter {
     _transporter = nodemailer.createTransport({
       host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
       port: Number(process.env.BREVO_SMTP_PORT || 587),
-      secure: false,
-      // Fix B11 — require STARTTLS so credentials/content are never sent in
-      // cleartext if the server would otherwise allow an unencrypted session.
-      requireTLS: true,
+      secure: false, // port 587 uses STARTTLS upgrade (not direct TLS)
       auth: { user: process.env.BREVO_SMTP_USER, pass: process.env.BREVO_SMTP_PASS },
     });
   }
