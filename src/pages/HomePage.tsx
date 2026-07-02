@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import HeroSection from '../components/layout/HeroSection';
+import { useSEO } from '../hooks/useSEO';
 
 // Lazy-load below-the-fold sections for performance
 const AboutSection        = lazy(() => import('../components/layout/AboutSection'));
@@ -17,9 +18,16 @@ const ContactSection      = lazy(() => import('../components/layout/ContactSecti
  * CoMUN 2026 Home Page
  * Hero loads immediately; all other sections are lazy-loaded.
  */
-const HomePage: React.FC = () => (
-  <main>
-    {/* Hero — always eagerly loaded (above the fold) */}
+const HomePage: React.FC = () => {
+  useSEO({
+    title: 'CoMUN 2026 — Cottons Model United Nations',
+    description: 'Peace Over Power. Join CoMUN 2026 — the premier Model United Nations experience. 30 July – 1 August 2026 at Cottons Campus.',
+    url: '/',
+  });
+
+  return (
+    <main>
+      {/* Hero — always eagerly loaded (above the fold) */}
     <HeroSection />
 
     <Suspense fallback={<SectionSkeleton />}>
@@ -56,7 +64,8 @@ const HomePage: React.FC = () => (
       <ContactSection />
     </Suspense>
   </main>
-);
+  );
+};
 
 // Lightweight skeleton while section loads
 const SectionSkeleton: React.FC = () => (

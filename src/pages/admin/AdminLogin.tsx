@@ -4,8 +4,11 @@ import { motion } from 'framer-motion';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import { FormField } from '../../components/ui/FormField';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useSEO } from '../../hooks/useSEO';
 
 const AdminLogin: React.FC = () => {
+  useSEO({ title: 'Admin Login — CoMUN 2026', description: 'CoMUN 2026 Admin Control Panel Login' });
+
   const { login, admin } = useAdminAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');

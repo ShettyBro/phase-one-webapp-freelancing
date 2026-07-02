@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useSEO } from '../../hooks/useSEO';
 
 const NAV = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -62,6 +63,8 @@ const SidebarNav: React.FC<{ isSuperAdmin: boolean; onNav?: () => void }> = ({ i
 );
 
 const AdminLayout: React.FC = () => {
+  useSEO({ title: 'Admin — CoMUN 2026', description: 'CoMUN 2026 Admin Dashboard' });
+
   const { admin, isSuperAdmin, msUntilExpiry, logout } = useAdminAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const mountedRef = React.useRef(false);

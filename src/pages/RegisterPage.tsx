@@ -6,6 +6,7 @@ import { IndividualForm } from '../components/registration/IndividualForm';
 import { InstitutionalForm } from '../components/registration/InstitutionalForm';
 import { RegistrationSuccess } from '../components/registration/RegistrationSuccess';
 import { useRegistration } from '../context/RegistrationContext';
+import { useSEO } from '../hooks/useSEO';
 import type { RegistrationResult } from '../utils/registrationApi';
 
 type Step = 'type' | 'delegation' | 'individual' | 'inst-template' | 'institutional' | 'success';
@@ -146,6 +147,12 @@ const DuplicateNotice: React.FC<{ applicationId: string; onDismiss: () => void }
 
 // ─── Main Page ─────────────────────────────────────────────────────────────
 const RegisterPage: React.FC = () => {
+  useSEO({
+    title: 'Register — CoMUN 2026',
+    description: 'Register for Cottons Model United Nations 2026. Join the premier diplomatic simulation as an individual delegate or institutional delegation.',
+    url: '/register',
+  });
+
   const { isOpen } = useRegistration();
   const [searchParams] = useSearchParams();
 

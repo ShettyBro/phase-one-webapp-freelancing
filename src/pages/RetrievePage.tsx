@@ -3,8 +3,15 @@ import { motion } from 'framer-motion';
 import { Download, Loader2, FileText, CheckCircle2 } from 'lucide-react';
 import { FormField } from '../components/ui/FormField';
 import { downloadRegistrationPdf } from '../utils/pdfApi';
+import { useSEO } from '../hooks/useSEO';
 
 const RetrievePage: React.FC = () => {
+  useSEO({
+    title: 'Retrieve Registration — CoMUN 2026',
+    description: 'Retrieve and download your CoMUN 2026 registration PDF using your Application ID and phone number.',
+    url: '/retrieve',
+  });
+
   const [applicationId, setApplicationId] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
