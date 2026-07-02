@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { fail, preflight, CORS, clientInfo } from './_shared/http';
+import { fail, preflight, getgetCORS, clientInfo , setEvent } from './_shared/http';
 import { buildRegistrationPdf, type PdfRegistration } from './_shared/pdf';
 import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
 
@@ -16,7 +16,8 @@ const normalizePhone = (p: string) => p.replace(/\D/g, '').slice(-10);
  * to prevent enumeration attacks (applicationId + phone guessing).
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'GET') return fail(405, 'Method not allowed.');
 
   const { ip } = clientInfo(event);
@@ -53,7 +54,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        ...CORS,
+        ...getCORS(),
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${applicationId}.pdf"`,
         'Cache-Control': 'no-store',

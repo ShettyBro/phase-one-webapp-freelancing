@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, parseBody, clientInfo } from './_shared/http';
+import { ok, fail, preflight, parseBody, clientInfo , setEvent } from './_shared/http';
 import { generateUniqueApplicationId } from './_shared/applicationId';
 import { sendInstitutionalConfirmation } from './_shared/email';
 import { isEmail, isPhone, nonEmpty, validateFileRef, type FileRef } from './_shared/validation';
@@ -33,7 +33,8 @@ function validateContact(c: Contact | undefined, label: string): string | null {
  * spreadsheet (no parsing). Spreadsheet must already be uploaded to R2.
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'POST') return fail(405, 'Method not allowed.');
 
   // Fix #4 — rate-limit registration: 3 per IP per hour.

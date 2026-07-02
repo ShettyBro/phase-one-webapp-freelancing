@@ -1,7 +1,7 @@
 import type { Handler } from '@netlify/functions';
 import bcrypt from 'bcryptjs';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, parseBody, clientInfo, corsHeaders } from './_shared/http';
+import { ok, fail, preflight, parseBody, clientInfo, corsHeaders , setEvent } from './_shared/http';
 import { signAdminToken, buildTokenCookie, sessionHours } from './_shared/auth';
 import { parseUserAgent } from './_shared/credentials';
 import { logActivity } from './_shared/logs';
@@ -20,6 +20,7 @@ import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
  */
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'POST') return fail(405, 'Method not allowed.', {}, event);
 
   const { ip, userAgent } = clientInfo(event);

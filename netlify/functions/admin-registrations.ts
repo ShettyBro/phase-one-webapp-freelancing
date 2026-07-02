@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, clientInfo } from './_shared/http';
+import { ok, fail, preflight, clientInfo , setEvent } from './_shared/http';
 import { authenticate } from './_shared/auth';
 import { deleteObjects, presignDownload, r2Configured } from './_shared/r2';
 import { logActivity } from './_shared/logs';
@@ -12,7 +12,8 @@ import { logActivity } from './_shared/logs';
  *  DELETE ?id=...    → delete record + R2 files
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
 
   const auth = await authenticate(event);
   if ('error' in auth) return fail(auth.error.status, auth.error.message, { expired: auth.error.expired });

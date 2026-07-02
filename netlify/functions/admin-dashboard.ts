@@ -1,11 +1,12 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight } from './_shared/http';
+import { ok, fail, preflight , setEvent } from './_shared/http';
 import { authenticate } from './_shared/auth';
 
 /** GET /api/admin-dashboard — stats cards + 14-day registration trend. */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'GET') return fail(405, 'Method not allowed.');
 
   const auth = await authenticate(event);

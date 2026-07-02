@@ -1,7 +1,7 @@
 import type { Handler } from '@netlify/functions';
 import bcrypt from 'bcryptjs';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, parseBody, clientInfo } from './_shared/http';
+import { ok, fail, preflight, parseBody, clientInfo , setEvent } from './_shared/http';
 import { authenticate } from './_shared/auth';
 import { generatePassword, generateUniqueUsername } from './_shared/credentials';
 import { isEmail, isPhone, nonEmpty } from './_shared/validation';
@@ -19,7 +19,8 @@ const ADMIN_SELECT = {
  *  PATCH ?id=...  → { isActive } toggle OR { resetPassword: true } → returns new password
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
 
   const auth = await authenticate(event, 'SUPER_ADMIN');
   if ('error' in auth) return fail(auth.error.status, auth.error.message, { expired: auth.error.expired });

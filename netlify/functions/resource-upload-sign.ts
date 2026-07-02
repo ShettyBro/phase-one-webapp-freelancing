@@ -1,5 +1,5 @@
 import type { Handler } from '@netlify/functions';
-import { ok, fail, preflight, parseBody } from './_shared/http';
+import { ok, fail, preflight, parseBody , setEvent } from './_shared/http';
 import { authenticate } from './_shared/auth';
 import { r2Configured, buildKey, presignUpload } from './_shared/r2';
 import { RESOURCE_FILE } from './_shared/domain';
@@ -36,7 +36,8 @@ const RESOURCE_ALLOWED_TYPES: Record<string, string[]> = {
  * subcategory defaults to 'others' if omitted or unrecognised.
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'POST') return fail(405, 'Method not allowed.');
 
   const auth = await authenticate(event);

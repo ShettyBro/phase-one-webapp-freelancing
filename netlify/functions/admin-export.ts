@@ -2,7 +2,7 @@ import type { Handler } from '@netlify/functions';
 import { Readable } from 'stream';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { prisma } from './_shared/prisma';
-import { fail, preflight, CORS } from './_shared/http';
+import { fail, preflight, getCORS , setEvent } from './_shared/http';
 import { authenticate } from './_shared/auth';
 import { R2_BUCKET, r2Configured } from './_shared/r2';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -52,7 +52,8 @@ function safeFilename(str: string): string {
  * type=id-proof-zip      → ZIP: All delegate ID proofs renamed ApplicationID_Name.ext
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'GET') return fail(405, 'Method not allowed.');
 
   // Fix #11 — ZIP exports contain bulk PII; gate them to SUPER_ADMIN.
@@ -98,7 +99,7 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         headers: {
-          ...CORS,
+          ...getCORS(),
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'Content-Disposition': 'attachment; filename="Individual_Single_Delegates.xlsx"',
           'Cache-Control': 'no-store',
@@ -149,7 +150,7 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         headers: {
-          ...CORS,
+          ...getCORS(),
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'Content-Disposition': 'attachment; filename="Individual_Double_Delegates.xlsx"',
           'Cache-Control': 'no-store',
@@ -203,7 +204,7 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         headers: {
-          ...CORS,
+          ...getCORS(),
           'Content-Type': 'application/zip',
           'Content-Disposition': 'attachment; filename="Institutional_Registrations.zip"',
           'Cache-Control': 'no-store',
@@ -244,7 +245,7 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         headers: {
-          ...CORS,
+          ...getCORS(),
           'Content-Type': 'application/zip',
           'Content-Disposition': 'attachment; filename="Individual_ID_Proofs.zip"',
           'Cache-Control': 'no-store',

@@ -1,13 +1,14 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight } from './_shared/http';
+import { ok, fail, preflight , setEvent } from './_shared/http';
 import { presignDownload, r2Configured } from './_shared/r2';
 
 /**
  * GET /api/resources-public — enabled resources grouped by category (for the site).
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'GET') return fail(405, 'Method not allowed.');
 
   try {

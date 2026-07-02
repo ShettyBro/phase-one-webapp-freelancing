@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, parseBody, clientInfo } from './_shared/http';
+import { ok, fail, preflight, parseBody, clientInfo , setEvent } from './_shared/http';
 import { isEmail, nonEmpty } from './_shared/validation';
 import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
 
@@ -11,7 +11,8 @@ import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
  * spam/flooding of the contact inbox.
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'POST') return fail(405, 'Method not allowed.');
 
   const { ip } = clientInfo(event);

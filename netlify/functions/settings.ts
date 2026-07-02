@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, parseBody, clientInfo } from './_shared/http';
+import { ok, fail, preflight, parseBody, clientInfo , setEvent } from './_shared/http';
 import { authenticate } from './_shared/auth';
 import { logActivity } from './_shared/logs';
 
@@ -17,7 +17,8 @@ async function getRegistrationOpen(): Promise<boolean> {
  * PUT  /api/settings  → admin: toggle registration { registrationOpen: boolean }
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
 
   try {
     if (event.httpMethod === 'GET') {

@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { fail, preflight, CORS } from './_shared/http';
+import { fail, preflight, getCORS , setEvent } from './_shared/http';
 import { authenticate } from './_shared/auth';
 import { buildRegistrationPdf, type PdfRegistration } from './_shared/pdf';
 
@@ -10,7 +10,8 @@ import { buildRegistrationPdf, type PdfRegistration } from './_shared/pdf';
  * Generates the PDF on the fly and streams it back as a download.
  */
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return preflight();
+  if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'GET') return fail(405, 'Method not allowed.');
 
   const auth = await authenticate(event);
@@ -32,7 +33,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        ...CORS,
+        ...getCORS(),
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${reg.applicationId}.pdf"`,
         'Cache-Control': 'no-store',

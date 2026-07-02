@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, clientInfo, corsHeaders } from './_shared/http';
+import { ok, fail, preflight, clientInfo, corsHeaders , setEvent } from './_shared/http';
 import { authenticate, clearTokenCookie } from './_shared/auth';
 import { logActivity } from './_shared/logs';
 
@@ -14,6 +14,7 @@ import { logActivity } from './_shared/logs';
  */
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight(event);
+  setEvent(event);
   if (event.httpMethod !== 'POST') return fail(405, 'Method not allowed.', {}, event);
 
   const auth = await authenticate(event);
