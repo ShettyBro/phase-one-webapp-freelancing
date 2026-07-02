@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { fail, preflight, getgetCORS, clientInfo , setEvent } from './_shared/http';
+import { fail, preflight, getCORS, clientInfo, setEvent } from './_shared/http';
 import { buildRegistrationPdf, type PdfRegistration } from './_shared/pdf';
 import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
 
