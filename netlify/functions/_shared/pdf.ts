@@ -69,6 +69,8 @@ export interface PdfRegistration {
   headEmail: string | null;
   headPhone: string | null;
   amountPayable: number;
+  paymentMethod?: 'ONLINE' | 'OFFLINE' | null;
+  paymentReference?: string | null;
   submittedAt: Date;
   delegates: PdfDelegate[];
 }
@@ -360,20 +362,27 @@ export async function buildRegistrationPdf(
 
   // Amount card
   const amtX = ML + CARD_W + GAP;
-  const amtStr = reg.amountPayable > 0
+  let amtHeading = 'AMOUNT PAYABLE AT DESK';
+  let amtStr = reg.amountPayable > 0
     ? `${CURRENCY} ${reg.amountPayable.toLocaleString()}`
     : 'At desk - per delegate';
+
+  if (reg.paymentMethod === 'ONLINE') {
+    amtHeading = 'ONLINE PAYMENT (NEFT)';
+    amtStr = reg.paymentReference ? `Ref: ${reg.paymentReference}` : 'Paid Online';
+  }
+
   page.drawRectangle({
     x: amtX, y: curY - CARD_H, width: CARD_W, height: CARD_H,
     color: rgb(0.970, 0.975, 0.990), borderColor: C_NAVY, borderWidth: 1,
   });
-  page.drawText('AMOUNT PAYABLE AT DESK', {
+  page.drawText(amtHeading, {
     x: amtX + 10, y: curY - 18,
     size: 7.5, font: fSansBold, color: C_NAVY,
   });
   page.drawText(amtStr, {
     x: amtX + 10, y: curY - 42,
-    size: reg.amountPayable > 0 ? 17 : 10, font: fSansBold, color: C_MAROON,
+    size: (reg.amountPayable > 0 && reg.paymentMethod !== 'ONLINE') ? 17 : 10, font: fSansBold, color: C_MAROON,
   });
 
   curY -= CARD_H + 18;

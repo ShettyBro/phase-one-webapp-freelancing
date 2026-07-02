@@ -42,6 +42,8 @@ export async function submitIndividual(payload: {
   portfolio: string;
   delegates: Array<Omit<DelegateForm, 'grade'> & { grade: number }>;
   idProofs: UploadedRef[];
+  paymentMethod: 'ONLINE' | 'OFFLINE';
+  paymentReference?: string;
 }): Promise<RegistrationResult> {
   const { data } = await api.post('/register-individual', payload);
   return data;

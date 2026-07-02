@@ -13,6 +13,8 @@ interface IndividualPayload {
   portfolio?: string;
   delegates?: DelegateInput[];
   idProofs?: FileRef[];
+  paymentMethod?: 'ONLINE' | 'OFFLINE';
+  paymentReference?: string;
 }
 
 async function findDuplicate(emails: string[], phones: string[]) {
@@ -60,6 +62,12 @@ export const handler: Handler = async (event) => {
     if (!body.portfolio || !body.portfolio.trim()) {
       return fail(400, 'A portfolio preference is required.');
     }
+    if (body.paymentMethod !== 'ONLINE' && body.paymentMethod !== 'OFFLINE') {
+      return fail(400, 'Invalid payment method.');
+    }
+    if (body.paymentMethod === 'ONLINE' && (!body.paymentReference || !body.paymentReference.trim())) {
+      return fail(400, 'A transaction reference number is required for online payments.');
+    }
 
     const delegates = body.delegates ?? [];
     const idProofs = body.idProofs ?? [];
@@ -105,6 +113,8 @@ export const handler: Handler = async (event) => {
         committee: body.committee,
         portfolio: body.portfolio.trim(),
         amountPayable,
+        paymentMethod: body.paymentMethod,
+        paymentReference: body.paymentMethod === 'ONLINE' ? body.paymentReference?.trim() : null,
         delegates: {
           create: delegates.map((d, i) => ({
             position: i + 1,

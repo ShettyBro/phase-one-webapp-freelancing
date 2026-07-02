@@ -166,6 +166,7 @@ const RegisterPage: React.FC = () => {
   const [delegation, setDelegation] = useState<Delegation>('SINGLE');
   const [result, setResult]   = useState<{ data: RegistrationResult; phone: string } | null>(null);
   const [duplicateId, setDuplicateId] = useState<string | null>(null);
+  const [instAck, setInstAck] = useState(false);
 
   // Determine which flow we're in based on step history
   const [flowType, setFlowType] = useState<'individual' | 'institutional'>(
@@ -456,23 +457,69 @@ const RegisterPage: React.FC = () => {
                 </a>
               </div>
 
-              {/* Instructions */}
-              <div className="border border-white/8 bg-white/[0.02] rounded-md p-5">
-                <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-3">Instructions</p>
-                <ol className="font-sans text-sm text-comun-muted space-y-2 list-decimal list-inside">
-                  <li>Download the Excel template above.</li>
-                  <li>Fill in the details for <strong className="text-comun-white/80">each delegate</strong> from your institution.</li>
-                  <li>Save the filled file — you will upload it in the next step.</li>
-                  <li>Proceed to fill in your teacher and head delegate contact information.</li>
-                </ol>
+              {/* Instructions & Guidelines */}
+              <div className="border border-white/8 bg-white/[0.02] rounded-md p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-3">Registration Steps</p>
+                  <ol className="font-sans text-sm text-comun-muted space-y-2 list-decimal list-inside">
+                    <li>Download the Excel template above.</li>
+                    <li>Fill in the details for <strong className="text-comun-white/80">each delegate</strong> from your institution.</li>
+                    <li>Save the filled file — you will upload it in the next step.</li>
+                    <li>Proceed to fill in your teacher and head delegate contact information.</li>
+                  </ol>
+                </div>
+                
+                <div className="md:border-l md:border-white/10 md:pl-6">
+                  <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-3">Important Guidelines</p>
+                  <ul className="font-sans text-sm text-comun-muted space-y-2 list-disc list-inside">
+                    <li>Institutions can contact the official team for accommodation details.</li>
+                    <li>Delegations must submit the Excel sheet listing the full names of delegates.</li>
+                    <li>Delegations must make payments directly to the School’s Bank Account.</li>
+                    <li>Payment receipts must be sent to the CoMUN Organising Team for confirmation.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Payment Details */}
+              <div className="border border-comun-gold/20 bg-comun-gold/5 rounded-md p-5">
+                <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-3">Payment Information</p>
+                <div className="flex flex-col md:flex-row gap-6">
+                  <div className="flex-1">
+                    <p className="font-sans text-sm text-comun-white mb-2">Cost per Delegate: <strong className="text-comun-gold font-semibold">₹1,500</strong></p>
+                    <p className="font-sans text-xs text-comun-muted">Example: 10 Delegates × ₹1,500 = ₹15,000</p>
+                    <div className="mt-4 font-mono text-sm text-comun-gold/80 bg-black/20 p-3 rounded border border-white/5 space-y-1 inline-block">
+                      <p><strong>Name:</strong> BISHOP COTTON BOYS' SCHOOL</p>
+                      <p><strong>A/C No:</strong> 410202050000024</p>
+                      <p><strong>IFSC:</strong> UBIN0541028</p>
+                      <p><strong>Branch:</strong> Richmond Town Branch</p>
+                    </div>
+                  </div>
+                </div>
+                <label className="flex items-start gap-3 mt-5 cursor-pointer group select-none">
+                  <div className="relative flex items-center justify-center pt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={instAck}
+                      onChange={(e) => setInstAck(e.target.checked)}
+                      className="peer appearance-none w-4 h-4 rounded-sm border border-comun-gold/50 bg-black/20 checked:bg-comun-gold checked:border-comun-gold cursor-pointer transition-colors"
+                    />
+                    <svg className="absolute w-3 h-3 text-comun-navy pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <span className="font-sans text-sm text-comun-muted group-hover:text-comun-white transition-colors">
+                    I have read and acknowledge the registration steps, payment guidelines, and bank details.
+                  </span>
+                </label>
               </div>
 
               {/* Continue button */}
               <button
                 onClick={() => setStep('institutional')}
-                className="btn-primary py-3.5 text-sm w-full sm:w-auto sm:self-end"
+                disabled={!instAck}
+                className="btn-primary py-3.5 text-sm w-full sm:w-auto sm:self-end disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                I've Downloaded the Template — Continue to Registration →
+                Continue to Registration →
               </button>
             </motion.div>
 

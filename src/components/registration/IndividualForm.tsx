@@ -36,6 +36,8 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
   const [idProofs, setIdProofs] = useState<(UploadedRef | null)[]>(Array(count).fill(null));
   const [committee, setCommittee] = useState(isDouble ? DOUBLE_COMMITTEE : '');
   const [portfolio, setPortfolio] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'OFFLINE'>('ONLINE');
+  const [paymentReference, setPaymentReference] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +62,9 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
       if (!d.experience.trim()) return `${label}: experience is required.`;
       if (!idProofs[i]) return `${label}: please upload an ID proof.`;
     }
+    if (paymentMethod === 'ONLINE' && !paymentReference.trim()) {
+      return 'Please enter the Transaction Reference Number (UTR) for your online payment.';
+    }
     return null;
   };
 
@@ -79,6 +84,8 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
         portfolio: portfolio.trim(),
         delegates: delegates.map((d) => ({ ...d, grade: Number(d.grade) })),
         idProofs: idProofs as UploadedRef[],
+        paymentMethod,
+        paymentReference: paymentMethod === 'ONLINE' ? paymentReference.trim() : undefined,
       });
       onSuccess(result, delegates[0].phone.trim());
     } catch (err) {
@@ -155,6 +162,75 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
           />
         )}
         <FormField label="Portfolio Preference" name="portfolio" required value={portfolio} onChange={setPortfolio} placeholder="e.g. country / role" />
+      </div>
+
+      {/* Payment Section */}
+      <div className="glass gold-border rounded-md p-6 flex flex-col gap-5">
+        <h3 className="font-serif-display text-xl text-comun-gold">Payment Details</h3>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button
+            type="button"
+            onClick={() => setPaymentMethod('ONLINE')}
+            className={`p-5 rounded-md border text-left transition-all ${
+              paymentMethod === 'ONLINE'
+                ? 'border-comun-gold bg-comun-gold/10 shadow-[0_0_15px_rgba(201,168,76,0.15)]'
+                : 'border-white/10 bg-white/[0.02] hover:border-comun-gold/30 hover:bg-white/[0.04]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className={`font-sans font-semibold ${paymentMethod === 'ONLINE' ? 'text-comun-gold' : 'text-comun-white'}`}>Online (NEFT)</span>
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'ONLINE' ? 'border-comun-gold' : 'border-white/30'}`}>
+                {paymentMethod === 'ONLINE' && <div className="w-2 h-2 rounded-full bg-comun-gold" />}
+              </div>
+            </div>
+            <p className="font-sans text-xs text-comun-muted">Pay now via bank transfer and enter your reference number.</p>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setPaymentMethod('OFFLINE')}
+            className={`p-5 rounded-md border text-left transition-all ${
+              paymentMethod === 'OFFLINE'
+                ? 'border-comun-gold bg-comun-gold/10 shadow-[0_0_15px_rgba(201,168,76,0.15)]'
+                : 'border-white/10 bg-white/[0.02] hover:border-comun-gold/30 hover:bg-white/[0.04]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className={`font-sans font-semibold ${paymentMethod === 'OFFLINE' ? 'text-comun-gold' : 'text-comun-white'}`}>Offline</span>
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'OFFLINE' ? 'border-comun-gold' : 'border-white/30'}`}>
+                {paymentMethod === 'OFFLINE' && <div className="w-2 h-2 rounded-full bg-comun-gold" />}
+              </div>
+            </div>
+            <p className="font-sans text-xs text-comun-muted">Pay in cash at the registration desk on Day 1.</p>
+          </button>
+        </div>
+
+        {paymentMethod === 'ONLINE' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mt-2 p-5 border border-comun-gold/20 bg-comun-gold/5 rounded-md flex flex-col gap-4 overflow-hidden"
+          >
+            <div>
+              <p className="font-sans text-sm text-comun-white mb-2">Please transfer the registration fee to the following account:</p>
+              <div className="font-mono text-sm text-comun-gold/80 bg-black/20 p-3 rounded border border-white/5 space-y-1">
+                <p><strong>Name:</strong> BISHOP COTTON BOYS' SCHOOL</p>
+                <p><strong>A/C No:</strong> 410202050000024</p>
+                <p><strong>IFSC:</strong> UBIN0541028</p>
+                <p><strong>Branch:</strong> Richmond Town Branch</p>
+              </div>
+            </div>
+            <FormField
+              label="Transaction Reference Number (UTR)"
+              name="paymentReference"
+              required
+              value={paymentReference}
+              onChange={setPaymentReference}
+              placeholder="e.g. UTR1234567890"
+            />
+          </motion.div>
+        )}
       </div>
 
       {error && <p className="form-error text-center">{error}</p>}

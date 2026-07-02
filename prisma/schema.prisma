@@ -33,6 +33,11 @@ enum DelegationType {
   DOUBLE
 }
 
+enum PaymentMethod {
+  ONLINE  // Bank transfer / NEFT — reference number collected from user
+  OFFLINE // Pay at the registration desk
+}
+
 enum FileKind {
   ID_PROOF      // delegate identity proof (individual)
   SPREADSHEET   // institutional delegate spreadsheet (csv/xlsx)
@@ -104,6 +109,8 @@ model Registration {
   headPhone       String?
 
   amountPayable  Int      @default(0) // payable at the registration desk
+  paymentMethod    PaymentMethod? // ONLINE or OFFLINE
+  paymentReference String?        // UTR/Transaction ID for online payments
   submittedAt    DateTime @default(now())
 
   delegates Delegate[]
