@@ -16,22 +16,43 @@ const AdminMessages: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [openId, setOpenId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  // B4 — cancel in-flight requests when query changes to prevent stale results.
+  const abortRef = React.useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
+    // Cancel any previous in-flight request.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
-    const { data } = await api.get('/admin-messages', { params: q.trim() ? { q: q.trim() } : {} });
-    setMessages(data.messages);
-    setUnread(data.unreadCount);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const { data } = await api.get('/admin-messages', {
+        params: q.trim() ? { q: q.trim() } : {},
+        signal: controller.signal,
+      });
+      setMessages(data.messages);
+      setUnread(data.unreadCount);
+    } catch (err: unknown) {
+      // Ignore intentional cancellations (query changed).
+      if (err && typeof err === 'object' && 'name' in err && (err as { name: string }).name === 'CanceledError') return;
+      // B5 — surface the error instead of silently leaving loading=true.
+      setLoadError('Could not load messages. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   }, [q]);
 
   useEffect(() => {
     const t = setTimeout(load, 300);
-    return () => clearTimeout(t);
+    // Cancel the debounced request on cleanup.
+    return () => { clearTimeout(t); abortRef.current?.abort(); };
   }, [load]);
 
   const open = async (id: string) => {
@@ -79,90 +100,66 @@ const AdminMessages: React.FC = () => {
         }
       />
 
+      {/* Search */}
       <div className="relative mb-4">
         <Search className="w-4 h-4 text-comun-muted absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search messages…"
-          className="form-input pl-9"
-        />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search messages…" className="form-input pl-9" />
       </div>
 
-      {loading ? (
-        <Spinner />
-      ) : messages.length === 0 ? (
-        <AdminCard><EmptyState message="No messages found." /></AdminCard>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {messages.map((m) => (
-            <AdminCard key={m.id} className={`${!m.isRead ? 'border-comun-gold/30' : ''}`}>
-              {/* Message header row */}
-              <div className="flex items-start justify-between gap-3 p-4">
-                <button
-                  onClick={() => open(m.id)}
-                  className="flex items-start gap-3 text-left flex-1 min-w-0"
-                >
-                  {m.isRead
-                    ? <MailOpen className="w-4 h-4 text-comun-muted mt-0.5 flex-shrink-0" />
-                    : <Mail className="w-4 h-4 text-comun-gold mt-0.5 flex-shrink-0" />
-                  }
-                  <div className="min-w-0">
-                    <p className={`font-sans text-sm ${m.isRead ? 'text-comun-white/80' : 'text-comun-white font-semibold'}`}>
-                      {m.name}
-                      <span className="text-comun-muted font-normal"> · {m.email}</span>
-                    </p>
-                    <p className="font-sans text-xs text-comun-muted truncate mt-0.5">{m.message}</p>
+      <AdminCard>
+        {loading ? <Spinner /> : loadError ? (
+          // B5 — visible error + retry instead of silent infinite spinner.
+          <div className="p-8 text-center">
+            <p className="font-sans text-sm text-comun-maroon-light mb-4">{loadError}</p>
+            <button onClick={() => load()} className="btn-secondary text-sm px-6 py-2.5">Retry</button>
+          </div>
+        ) : messages.length === 0 ? (
+          <EmptyState message="No messages yet." />
+        ) : (
+          <div className="divide-y divide-white/5">
+            {messages.map((m) => (
+              <div key={m.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <button
+                    onClick={() => open(m.id)}
+                    className="flex-1 text-left min-w-0"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {m.isRead
+                        ? <MailOpen className="w-4 h-4 text-comun-muted flex-shrink-0" />
+                        : <Mail className="w-4 h-4 text-comun-gold flex-shrink-0" />}
+                      <span className={`font-sans text-sm truncate ${m.isRead ? 'text-comun-white/70' : 'text-comun-white font-semibold'}`}>
+                        {m.name}
+                      </span>
+                      <span className="font-sans text-xs text-comun-muted ml-auto flex-shrink-0">
+                        {new Date(m.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="font-sans text-xs text-comun-muted truncate">{m.email}</p>
+                    {openId !== m.id && (
+                      <p className="font-sans text-xs text-comun-white/50 truncate mt-1">{m.message}</p>
+                    )}
+                  </button>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button onClick={() => replyTo(m.email, m.name)} className="p-1.5 text-comun-muted hover:text-comun-gold transition-colors" title="Reply"><Reply className="w-4 h-4" /></button>
+                    <button onClick={() => setDeleteId(m.id)} className="p-1.5 text-comun-muted hover:text-comun-maroon-light transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
                   </div>
-                </button>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <span className="font-sans text-[11px] text-comun-muted hidden sm:block mr-1">
-                    {m.createdAt.slice(0, 10)}
-                  </span>
-                  <button
-                    onClick={() => replyTo(m.email, m.name)}
-                    className="p-1.5 text-comun-muted hover:text-comun-gold transition-colors"
-                    title={`Reply to ${m.email}`}
-                  >
-                    <Reply className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteId(m.id)}
-                    className="p-1.5 text-comun-muted hover:text-comun-maroon-light transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
                 </div>
-              </div>
-
-              {/* Expanded message body */}
-              {openId === m.id && (
-                <div className="px-4 pb-4 border-t border-white/5 pt-3">
-                  <p className="font-sans text-sm text-comun-white/80 leading-relaxed whitespace-pre-wrap">
+                {openId === m.id && (
+                  <div className="mt-3 pl-6 font-sans text-sm text-comun-white/80 whitespace-pre-wrap border-l-2 border-comun-gold/20 leading-relaxed">
                     {m.message}
-                  </p>
-                  <div className="mt-4 flex items-center gap-3">
-                    <button
-                      onClick={() => replyTo(m.email, m.name)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-sm font-sans text-xs font-semibold border border-comun-gold/25 text-comun-gold hover:bg-comun-gold/10 transition-colors"
-                    >
-                      <Reply className="w-3.5 h-3.5" />
-                      Reply via Email
-                    </button>
-                    <span className="font-sans text-xs text-comun-muted">{m.email}</span>
                   </div>
-                </div>
-              )}
-            </AdminCard>
-          ))}
-        </div>
-      )}
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </AdminCard>
 
       <ConfirmDialog
         open={!!deleteId}
         title="Delete Message?"
-        message="This message will be permanently deleted."
+        message="This permanently removes the message. Cannot be undone."
         loading={deleting}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}

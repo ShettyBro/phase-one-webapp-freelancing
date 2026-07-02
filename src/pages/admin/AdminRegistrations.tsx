@@ -68,18 +68,27 @@ const AdminRegistrations: React.FC = () => {
   const [exportBusy, setExportBusy] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState(false);
+  // B4 — keep a ref to the latest AbortController so stale requests are cancelled.
+  const abortRef = React.useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
+    // Cancel any in-flight request before starting a new one.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setLoadError(null);
     const params: Record<string, string> = {};
     if (q.trim()) params.q = q.trim();
     if (type) params.type = type;
     try {
-      const { data } = await api.get('/admin-registrations', { params });
+      const { data } = await api.get('/admin-registrations', { params, signal: controller.signal });
       setAll(data.registrations);
       setPage(1);
-    } catch {
+    } catch (err: unknown) {
+      // Ignore cancellations — they are intentional (query changed).
+      if (err && typeof err === 'object' && 'name' in err && (err as { name: string }).name === 'CanceledError') return;
       // 401 is handled globally (redirect to login); show a message for the rest.
       setLoadError('Could not load registrations. Please check your connection and try again.');
     } finally {
@@ -89,8 +98,9 @@ const AdminRegistrations: React.FC = () => {
 
   useEffect(() => {
     const t = setTimeout(load, 300);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); abortRef.current?.abort(); };
   }, [load]);
+
 
   // ── Sort ────────────────────────────────────────────────────────────────
   const toggleSort = (key: SortKey) => {
@@ -250,6 +260,13 @@ const AdminRegistrations: React.FC = () => {
               })}
               <button onClick={() => setPage(totalPages)} disabled={page === totalPages} className="p-1.5 text-comun-muted hover:text-comun-gold disabled:opacity-30"><ChevronRight className="w-3.5 h-3.5" /></button>
             </div>
+          </div>
+        )}
+        {/* B8 — cap notice: warn when results may be truncated */}
+        {all.length >= 500 && !loading && (
+          <div className="px-4 py-2 border-t border-comun-gold/10 font-sans text-xs text-comun-gold/60 flex items-center gap-1.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-comun-gold/50 flex-shrink-0" />
+            Showing latest 500 records — use the search or type filter to narrow results.
           </div>
         )}
       </AdminCard>

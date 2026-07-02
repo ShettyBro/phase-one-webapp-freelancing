@@ -29,6 +29,9 @@ export const RegistrationSuccess: React.FC<RegistrationSuccessProps> = ({ result
     setDownloading(true);
     setDownloadError(null);
     try {
+      // B9 — brief delay so Neon read replicas have time to catch up after
+      // the just-written registration row becomes visible on the read path.
+      await new Promise((r) => setTimeout(r, 1000));
       await downloadRegistrationPdf(result.applicationId, phone);
     } catch {
       setDownloadError('Could not generate the PDF right now. You can retrieve it later from the Retrieve Registration page.');
@@ -75,7 +78,7 @@ export const RegistrationSuccess: React.FC<RegistrationSuccessProps> = ({ result
       )}
 
       <p className="font-sans text-xs text-comun-muted leading-relaxed mb-8">
-        A confirmation email has been sent. Please download your registration PDF and bring a
+        A confirmation email should arrive shortly. Please download your registration PDF and bring a
         printed copy during offline registration.
       </p>
 
