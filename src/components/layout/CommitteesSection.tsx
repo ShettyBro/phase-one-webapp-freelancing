@@ -39,8 +39,8 @@ const CommitteesSection: React.FC = () => {
           subtitle="Each committee represents a distinct forum of the United Nations system. Choose your arena, research your mandate, and step into the debate."
         />
 
-        {/* Committee list — compact horizontal rows */}
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Committee grid — 1 col mobile, 2 col sm, 3 col lg */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
           {COMMITTEES.map((c, i) => (
             <CommitteeCard key={c.code} committee={c} index={i} onClick={() => setSelectedCommittee(c)} />
           ))}
