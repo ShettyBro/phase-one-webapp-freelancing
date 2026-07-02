@@ -22,8 +22,9 @@ function getTransporter(): Transporter {
   // This matches the working scripts/test-email.mjs pattern exactly.
   const host = process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com';
   const port = Number(process.env.BREVO_SMTP_PORT || 587);
-  const user = process.env.BREVO_SMTP_USER;
-  const pass = process.env.BREVO_SMTP_PASS;
+  // Strip quotes/whitespace in case they were pasted with quotes in Netlify UI
+  const user = process.env.BREVO_SMTP_USER?.replace(/^["']|["']$/g, '').trim();
+  const pass = process.env.BREVO_SMTP_PASS?.replace(/^["']|["']$/g, '').trim();
 
   // Log partial credentials so missing env vars are immediately obvious in logs.
   console.log('[email] SMTP config:', {
