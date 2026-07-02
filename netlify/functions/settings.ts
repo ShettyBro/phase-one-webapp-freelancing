@@ -25,7 +25,7 @@ export const handler: Handler = async (event) => {
     }
 
     if (event.httpMethod === 'PUT') {
-      const auth = authenticate(event);
+      const auth = await authenticate(event);
       if ('error' in auth) return fail(auth.error.status, auth.error.message, { expired: auth.error.expired });
 
       const body = parseBody<{ registrationOpen?: boolean }>(event);

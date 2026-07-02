@@ -69,6 +69,15 @@ export async function presignUpload(
   );
 }
 
+/** Sanitizes a filename for safe use in a Content-Disposition header value.
+ *  Strips control characters, CR, LF, quotes, and semicolons that could
+ *  break out of the header field (fix for finding #7). */
+function sanitizeFilename(name: string): string {
+  // Remove control chars (0x00–0x1f, 0x7f) and the characters that delimit
+  // header values: double-quote, backslash, CR, LF, semicolon.
+  return name.replace(/[\x00-\x1f\x7f"\\;\r\n]/g, '_').slice(0, 200);
+}
+
 /** Presigned GET URL for downloading a stored object (optionally forcing a filename). */
 export async function presignDownload(
   key: string,
@@ -80,7 +89,10 @@ export async function presignDownload(
     new GetObjectCommand({
       Bucket: R2_BUCKET,
       Key: key,
-      ResponseContentDisposition: downloadName ? `attachment; filename="${downloadName}"` : undefined,
+      // Fix #7 — sanitize filename before embedding in Content-Disposition.
+      ResponseContentDisposition: downloadName
+        ? `attachment; filename="${sanitizeFilename(downloadName)}"`
+        : undefined,
     }),
     { expiresIn },
   );

@@ -1,10 +1,11 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, parseBody } from './_shared/http';
+import { ok, fail, preflight, parseBody, clientInfo } from './_shared/http';
 import { generateUniqueApplicationId } from './_shared/applicationId';
 import { sendInstitutionalConfirmation } from './_shared/email';
 import { isEmail, isPhone, nonEmpty, validateFileRef, type FileRef } from './_shared/validation';
 import { FEES } from './_shared/domain';
+import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
 
 interface Contact {
   name?: string;
@@ -34,6 +35,12 @@ function validateContact(c: Contact | undefined, label: string): string | null {
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
   if (event.httpMethod !== 'POST') return fail(405, 'Method not allowed.');
+
+  // Fix #4 — rate-limit registration: 3 per IP per hour.
+  const { ip } = clientInfo(event);
+  if (!checkRateLimit(`register-institutional:${ip}`, 3, 60 * 60 * 1000)) {
+    return RATE_LIMIT_RESPONSE;
+  }
 
   try {
     const setting = await prisma.setting.findUnique({ where: { key: 'registration_open' } });

@@ -8,7 +8,7 @@ export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
   if (event.httpMethod !== 'GET') return fail(405, 'Method not allowed.');
 
-  const auth = authenticate(event);
+  const auth = await authenticate(event);
   if ('error' in auth) return fail(auth.error.status, auth.error.message, { expired: auth.error.expired });
 
   try {

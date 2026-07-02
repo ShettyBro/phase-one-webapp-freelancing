@@ -1,7 +1,8 @@
 import type { Handler } from '@netlify/functions';
-import { ok, fail, preflight, parseBody } from './_shared/http';
+import { ok, fail, preflight, parseBody, clientInfo } from './_shared/http';
 import { r2Configured, buildKey, presignUpload } from './_shared/r2';
 import { ID_PROOF, SPREADSHEET } from './_shared/domain';
+import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
 
 type UploadKind = 'ID_PROOF' | 'SPREADSHEET';
 
@@ -13,7 +14,7 @@ interface SignRequest {
 }
 
 const RULES: Record<UploadKind, { prefix: string; mimeTypes: string[]; maxBytes: number }> = {
-  ID_PROOF:    { prefix: 'individual/ids',         mimeTypes: ID_PROOF.mimeTypes,    maxBytes: ID_PROOF.maxBytes },
+  ID_PROOF:    { prefix: 'individual/ids',          mimeTypes: ID_PROOF.mimeTypes,    maxBytes: ID_PROOF.maxBytes },
   SPREADSHEET: { prefix: 'institution/spreadsheets', mimeTypes: SPREADSHEET.mimeTypes, maxBytes: SPREADSHEET.maxBytes },
 };
 
@@ -22,6 +23,10 @@ const RULES: Record<UploadKind, { prefix: string; mimeTypes: string[]; maxBytes:
  * Body: { kind, fileName, contentType, size }
  * Returns a presigned PUT URL the browser uses to upload directly to R2,
  * plus the object key to attach to the registration payload.
+ *
+ * Fix #3 — rate-limited to 20 sign requests per IP per 10 minutes.
+ * This is unauthenticated (public registrants need it before they have an
+ * account) so rate limiting is the primary abuse-prevention control here.
  */
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
@@ -29,6 +34,13 @@ export const handler: Handler = async (event) => {
 
   if (!r2Configured()) {
     return fail(503, 'File storage is not configured yet. Please try again later.');
+  }
+
+  const { ip } = clientInfo(event);
+
+  // Fix #3 — rate-limit upload signing: 20 per IP per 10 minutes.
+  if (!checkRateLimit(`uploads-sign:${ip}`, 20, 10 * 60 * 1000)) {
+    return RATE_LIMIT_RESPONSE;
   }
 
   const { kind, fileName, contentType, size } = parseBody<SignRequest>(event);

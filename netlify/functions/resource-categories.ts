@@ -14,7 +14,7 @@ import { logActivity } from './_shared/logs';
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
 
-  const auth = authenticate(event);
+  const auth = await authenticate(event);
   if ('error' in auth) return fail(auth.error.status, auth.error.message, { expired: auth.error.expired });
 
   try {

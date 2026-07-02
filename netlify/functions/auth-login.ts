@@ -5,18 +5,28 @@ import { ok, fail, preflight, parseBody, clientInfo } from './_shared/http';
 import { signAdminToken } from './_shared/auth';
 import { parseUserAgent } from './_shared/credentials';
 import { logActivity } from './_shared/logs';
+import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
 
 /**
  * POST /api/auth-login — { username, password }
  * Verifies credentials, records a login log, returns a JWT + session info.
+ *
+ * Fix #4 — rate-limited to 10 attempts per IP per 15 minutes to prevent
+ * brute-force / credential-stuffing attacks.
  */
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
   if (event.httpMethod !== 'POST') return fail(405, 'Method not allowed.');
 
-  const { username, password } = parseBody<{ username?: string; password?: string }>(event);
   const { ip, userAgent } = clientInfo(event);
   const { browser, device } = parseUserAgent(userAgent);
+
+  // Fix #4 — rate-limit login attempts: 10 per IP per 15 minutes.
+  if (!checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)) {
+    return RATE_LIMIT_RESPONSE;
+  }
+
+  const { username, password } = parseBody<{ username?: string; password?: string }>(event);
 
   const recordLogin = (adminId: string | null, success: boolean) =>
     prisma.loginLog.create({
@@ -46,7 +56,7 @@ export const handler: Handler = async (event) => {
 
     return ok({
       token,
-      expiresInMs, // 0 = never (super admin)
+      expiresInMs,
       admin: { id: admin.id, name: admin.name, username: admin.username, role: admin.role },
     });
   } catch (err) {

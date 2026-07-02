@@ -21,7 +21,7 @@ const ADMIN_SELECT = {
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
 
-  const auth = authenticate(event, 'SUPER_ADMIN');
+  const auth = await authenticate(event, 'SUPER_ADMIN');
   if ('error' in auth) return fail(auth.error.status, auth.error.message, { expired: auth.error.expired });
 
   const { ip } = clientInfo(event);
