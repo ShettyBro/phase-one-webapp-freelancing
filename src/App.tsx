@@ -22,6 +22,7 @@ const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminRegistrations = lazy(() => import('./pages/admin/AdminRegistrations'));
+const AdminFinance = lazy(() => import('./pages/admin/AdminFinance'));
 const AdminResources = lazy(() => import('./pages/admin/AdminResources'));
 const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
@@ -89,6 +90,7 @@ const AdminApp: React.FC = () => (
         >
           <Route index element={<AdminDashboard />} />
           <Route path="registrations" element={<AdminRegistrations />} />
+          <Route path="finance" element={<AdminFinance />} />
           <Route path="resources" element={<AdminResources />} />
           <Route path="messages" element={<AdminMessages />} />
           <Route path="settings" element={<AdminSettings />} />

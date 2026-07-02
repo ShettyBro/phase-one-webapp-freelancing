@@ -349,6 +349,19 @@ const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete?: () =
 
       <Row label="Submitted" value={String(detail.submittedAt).slice(0, 10)} />
       <Row label="Amount Payable" value={detail.amountPayable > 0 ? `INR ${detail.amountPayable}` : 'At desk'} />
+      <Row
+        label="Payment Mode"
+        value={
+          detail.paymentMethod === 'ONLINE'
+            ? 'Online (Bank Transfer)'
+            : detail.paymentMethod === 'OFFLINE'
+              ? 'Offline (Pay at Desk)'
+              : 'Pay at Desk'
+        }
+      />
+      {detail.paymentMethod === 'ONLINE' && (
+        <Row label="Payment Reference" value={detail.paymentReference} />
+      )}
       {detail.committee && <Row label="Committee" value={detail.committee} />}
       {detail.portfolio && <Row label="Portfolio" value={detail.portfolio} />}
 

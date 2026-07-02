@@ -10,7 +10,14 @@ const XLSX = require('xlsx');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const JSZip = require('jszip');
 
-type ExportType = 'individual-single' | 'individual-double' | 'institutional-zip' | 'id-proof-zip';
+type ExportType = 'individual-single' | 'individual-double' | 'institutional-zip' | 'id-proof-zip' | 'payments';
+
+/** Human-friendly payment mode label for spreadsheets. */
+function paymentModeLabel(method: 'ONLINE' | 'OFFLINE' | null): string {
+  if (method === 'ONLINE') return 'Online (Bank Transfer)';
+  if (method === 'OFFLINE') return 'Offline (Pay at Desk)';
+  return 'Pay at Desk';
+}
 
 function r2Client(): S3Client {
   return new S3Client({
@@ -89,6 +96,8 @@ export const handler: Handler = async (event) => {
           'Committee': r.committee ?? '',
           'Portfolio': r.portfolio ?? '',
           'Amount Payable': r.amountPayable,
+          'Payment Mode': paymentModeLabel(r.paymentMethod),
+          'Payment Reference': r.paymentReference ?? '',
         };
       });
 
@@ -140,6 +149,8 @@ export const handler: Handler = async (event) => {
           'Committee': r.committee ?? '',
           'Portfolio': r.portfolio ?? '',
           'Amount Payable': r.amountPayable,
+          'Payment Mode': paymentModeLabel(r.paymentMethod),
+          'Payment Reference': r.paymentReference ?? '',
         };
       });
 
@@ -182,6 +193,8 @@ export const handler: Handler = async (event) => {
         'Registration Date': r.submittedAt.toISOString().slice(0, 10),
         'Uploaded Spreadsheet': r.files[0]?.fileName ?? '(none)',
         'Amount Payable': r.amountPayable,
+        'Payment Mode': paymentModeLabel(r.paymentMethod),
+        'Payment Reference': r.paymentReference ?? '',
       }));
 
       const wb = XLSX.utils.book_new();
@@ -251,6 +264,56 @@ export const handler: Handler = async (event) => {
           'Cache-Control': 'no-store',
         },
         body: zipBuf.toString('base64'),
+        isBase64Encoded: true,
+      };
+    }
+
+    // ── Export 5: Payments / Finance ────────────────────────────────────────
+    if (type === 'payments') {
+      const regs = await prisma.registration.findMany({
+        orderBy: { submittedAt: 'desc' },
+        include: { delegates: { select: { name: true }, orderBy: { position: 'asc' }, take: 1 } },
+      });
+
+      const rows = regs.map((r) => ({
+        'Application ID': r.applicationId,
+        'Registration Date': r.submittedAt.toISOString().slice(0, 10),
+        'Type':
+          r.type === 'INDIVIDUAL'
+            ? `Individual (${r.delegationType === 'DOUBLE' ? 'Double' : 'Single'})`
+            : 'Institutional',
+        'Payer': r.type === 'INDIVIDUAL' ? r.delegates[0]?.name ?? '' : r.institutionName ?? r.teacherName ?? '',
+        'Committee': r.committee ?? '',
+        'Payment Mode': paymentModeLabel(r.paymentMethod),
+        'Payment Reference': r.paymentReference ?? '',
+        'Amount Payable (INR)': r.amountPayable,
+        'Status': r.paymentMethod === 'ONLINE' ? 'Collected (Online)' : 'Pending (At Desk)',
+      }));
+
+      // Totals summary row set — appended below the records with a blank spacer.
+      const online = regs.filter((r) => r.paymentMethod === 'ONLINE');
+      const sum = (list: typeof regs) => list.reduce((acc, r) => acc + r.amountPayable, 0);
+      const totals = [
+        {},
+        { 'Application ID': 'SUMMARY' },
+        { 'Application ID': 'Total Expected (INR)', 'Amount Payable (INR)': sum(regs) },
+        { 'Application ID': 'Collected — Online (INR)', 'Amount Payable (INR)': sum(online), 'Payment Reference': `${online.length} payment(s)` },
+        { 'Application ID': 'Pending — At Desk (INR)', 'Amount Payable (INR)': sum(regs) - sum(online) },
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([...rows, ...totals]), 'Payments');
+      const buf: Buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+      return {
+        statusCode: 200,
+        headers: {
+          ...getCORS(),
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="Payments_Finance_Report.xlsx"',
+          'Cache-Control': 'no-store',
+        },
+        body: buf.toString('base64'),
         isBase64Encoded: true,
       };
     }

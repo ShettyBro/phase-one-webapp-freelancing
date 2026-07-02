@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, FolderOpen, Mail, Settings as SettingsIcon,
+  LayoutDashboard, Users, Wallet, FolderOpen, Mail, Settings as SettingsIcon,
   ScrollText, ShieldCheck, LogOut, Clock, Menu, X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +11,7 @@ import { useSEO } from '../../hooks/useSEO';
 const NAV = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/registrations', label: 'Registrations', icon: Users },
+  { to: '/admin/finance', label: 'Finance', icon: Wallet },
   { to: '/admin/resources', label: 'Resources', icon: FolderOpen },
   { to: '/admin/messages', label: 'Messages', icon: Mail },
   { to: '/admin/settings', label: 'Settings', icon: SettingsIcon },
