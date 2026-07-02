@@ -18,6 +18,7 @@ export const NAV_LINKS = [
   { label: 'About',      href: '#about' },
   { label: 'Committees', href: '#committees' },
   { label: 'Resources',  href: '#resources' },
+  { label: 'FAQ',        href: '#faq' },
   { label: 'Contact',    href: '#contact' },
 ] as const;
 
@@ -196,7 +197,7 @@ export const FAQS = [
   {
     question: 'Who can participate?',
     answer:
-      'CoMUN 2026 is open to high school and undergraduate students from all institutions. Both individual and institutional registrations are available. No prior MUN experience is required for most committees.',
+      'Cottons Model United Nations 2026 is open to all students from grades 6th to 12th. Students from undergraduate level and above are not permitted to register.',
   },
   {
     question: 'How do I register?',
@@ -212,15 +213,5 @@ export const FAQS = [
     question: 'What is the conference theme?',
     answer:
       '"Peace Over Power" — this theme challenges delegates to prioritize dialogue, cooperation, and humanitarian values over geopolitical dominance and conflict, reflecting the founding mission of the United Nations.',
-  },
-  {
-    question: 'Are there awards?',
-    answer:
-      'Yes. Outstanding delegates and best position papers will be recognized with awards across all committees. Certificates of participation will be provided to all registered delegates.',
-  },
-  {
-    question: 'Will there be training resources?',
-    answer:
-      'Yes. Background guides, position paper templates, and study resources will be made available through the Resources section of this website ahead of the conference.',
   },
 ] as const;

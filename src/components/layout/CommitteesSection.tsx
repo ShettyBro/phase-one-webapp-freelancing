@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { COMMITTEES, type Committee } from '../../data/comun';
@@ -8,6 +8,18 @@ import { DoveAccent } from '../ui/DoveAccent';
 
 const CommitteesSection: React.FC = () => {
   const [selectedCommittee, setSelectedCommittee] = useState<Committee | null>(null);
+
+  // Lock body scroll when modal is open to improve UI/UX
+  useEffect(() => {
+    if (selectedCommittee) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedCommittee]);
 
   return (
     <SectionContainer
@@ -65,7 +77,7 @@ const CommitteesSection: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className={`relative w-full max-w-2xl bg-gradient-to-br ${selectedCommittee.color} border border-comun-gold/20 rounded-md overflow-hidden shadow-2xl z-10`}
+              className={`relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-gradient-to-br ${selectedCommittee.color} border border-comun-gold/20 rounded-md shadow-2xl z-10 custom-scrollbar`}
               style={{ backdropFilter: 'blur(16px)' }}
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-comun-gold-dark via-comun-gold to-comun-gold-dark" />
