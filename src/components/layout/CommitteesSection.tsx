@@ -39,14 +39,10 @@ const CommitteesSection: React.FC = () => {
           subtitle="Each committee represents a distinct forum of the United Nations system. Choose your arena, research your mandate, and step into the debate."
         />
 
-        {/* Committee Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
-          {COMMITTEES.slice(0, 4).map((c, i) => (
+        {/* Committee list — compact horizontal rows */}
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-3">
+          {COMMITTEES.map((c, i) => (
             <CommitteeCard key={c.code} committee={c} index={i} onClick={() => setSelectedCommittee(c)} />
-          ))}
-          {/* Bottom row: last 3 */}
-          {COMMITTEES.slice(4).map((c, i) => (
-            <CommitteeCard key={c.code} committee={c} index={i + 4} onClick={() => setSelectedCommittee(c)} />
           ))}
         </div>
 
@@ -58,7 +54,7 @@ const CommitteesSection: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="text-center font-sans text-xs text-comun-muted tracking-widest uppercase mt-10"
         >
-          Committee study guides & background papers coming soon
+          Click any committee to view agenda &amp; details
         </motion.p>
       </div>
 

@@ -16,6 +16,7 @@ const SECTION_MAP: { label: string; sectionId: string }[] = [
   { label: 'About',      sectionId: 'about' },
   { label: 'Committees', sectionId: 'committees' },
   { label: 'Resources',  sectionId: 'resources' },
+  { label: 'FAQ',        sectionId: 'faq' },
   { label: 'Contact',    sectionId: 'contact' },
 ];
 

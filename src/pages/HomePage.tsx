@@ -9,7 +9,8 @@ const WhySection          = lazy(() => import('../components/layout/WhySection')
 const ResourcesSection    = lazy(() => import('../components/layout/ResourcesSection'));
 const VideoSection        = lazy(() => import('../components/layout/VideoSection'));
 const RegistrationSection = lazy(() => import('../components/layout/RegistrationSection'));
-const FAQSection          = lazy(() => import('../components/layout/FAQSection'));
+// FAQ is small and used in navbar — eager load so #faq is always in DOM
+import FAQSection from '../components/layout/FAQSection';
 const ContactSection      = lazy(() => import('../components/layout/ContactSection'));
 
 /**
@@ -49,9 +50,7 @@ const HomePage: React.FC = () => (
       <RegistrationSection />
     </Suspense>
 
-    <Suspense fallback={<SectionSkeleton />}>
-      <FAQSection />
-    </Suspense>
+    <FAQSection />
 
     <Suspense fallback={<SectionSkeleton />}>
       <ContactSection />
