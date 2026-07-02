@@ -151,7 +151,17 @@ export const handler: Handler = async (event) => {
   } catch (err: unknown) {
     // Unique-constraint fallback (race on delegate email/phone).
     if (typeof err === 'object' && err && (err as { code?: string }).code === 'P2002') {
-      return fail(409, 'A registration already exists for this email or phone number. Please contact the organizers.', { duplicate: true });
+      // Best-effort: try to find the conflicting registration's application ID.
+      const existingFallback = await prisma.delegate.findFirst({
+        where: { OR: [
+          { email: { in: [] } }, // race means we don't have emails here; just signal duplicate
+        ]},
+        include: { registration: { select: { applicationId: true } } },
+      }).catch(() => null);
+      return fail(409, 'A registration already exists for this email or phone number. Please contact the organizers.', {
+        duplicate: true,
+        applicationId: existingFallback?.registration?.applicationId ?? undefined,
+      });
     }
     console.error('register-individual error:', err);
     return fail(500, 'Registration failed. Please try again.');

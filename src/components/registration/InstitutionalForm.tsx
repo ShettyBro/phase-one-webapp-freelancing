@@ -67,8 +67,13 @@ export const InstitutionalForm: React.FC<InstitutionalFormProps> = ({ onSuccess,
       onSuccess(result, teacher.phone.trim());
     } catch (err) {
       const apiErr = extractApiError(err);
-      if (apiErr.duplicate && apiErr.applicationId) onDuplicate(apiErr.applicationId);
-      else setError(apiErr.message);
+      if (apiErr.duplicate && apiErr.applicationId) {
+        onDuplicate(apiErr.applicationId);
+      } else if (apiErr.duplicate) {
+        setError('An institutional registration already exists for this teacher email or phone. Please contact the organizers.');
+      } else {
+        setError(apiErr.message);
+      }
     } finally {
       setSubmitting(false);
     }

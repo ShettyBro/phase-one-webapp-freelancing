@@ -186,12 +186,19 @@ const RegisterPage: React.FC = () => {
   };
 
   const back = () => {
+    // Always clear duplicate state when going back so a new attempt starts fresh.
     setDuplicateId(null);
     if (step === 'delegation') setStep('type');
     else if (step === 'individual') setStep('delegation');
     else if (step === 'inst-template') setStep('type');
     else if (step === 'institutional') setStep('inst-template');
   };
+
+  // Extra safety: if step changes for any reason, discard any lingering duplicateId
+  // so it never bleeds from one flow attempt into another.
+  React.useEffect(() => {
+    setDuplicateId(null);
+  }, [step]);
 
   const showStepBar = isOpen && !duplicateId && step !== 'success';
 

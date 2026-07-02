@@ -85,6 +85,9 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
       const apiErr = extractApiError(err);
       if (apiErr.duplicate && apiErr.applicationId) {
         onDuplicate(apiErr.applicationId);
+      } else if (apiErr.duplicate) {
+        // Duplicate confirmed but no ID returned (race condition). Show inline message.
+        setError('A registration already exists with your email or phone number. Please contact the organizers.');
       } else {
         setError(apiErr.message);
       }
