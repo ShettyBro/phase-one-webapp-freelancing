@@ -1,53 +1,69 @@
 import type { HandlerEvent, HandlerResponse } from '@netlify/functions';
 
 /**
- * Origin allow-list.
- * Reflects the requesting origin if it's on the list (required for
- * credentialed cross-origin requests). Falls back to the primary domain for
- * unknown origins so we never send a wildcard on auth-bearing routes.
+ * CORS for a credentialed cross-origin setup (Vercel frontend + Netlify API).
+ *
+ * Because the frontend sends requests with `credentials: 'include'` (the auth
+ * token lives in an httpOnly cookie — fix #10), the browser requires:
+ *   1. `Access-Control-Allow-Credentials: true`
+ *   2. `Access-Control-Allow-Origin` set to the EXACT requesting origin — a
+ *      wildcard `*` is rejected by the browser on credentialed requests.
+ *
+ * So we reflect the origin when it's on the allow-list, and otherwise fall back
+ * to the primary production origin (never `*`).
  */
-const ALLOWED_ORIGINS = new Set([
-  'https://comun2026.com',
-  'https://www.comun2026.com',
+
+// Primary production frontend origin. Configurable via PUBLIC_SITE_URL so this
+// never has to be edited in code when the domain changes.
+const PRIMARY_ORIGIN = (process.env.PUBLIC_SITE_URL || 'https://cottonsmun26.com').replace(/\/$/, '');
+
+const ALLOWED_ORIGINS = new Set<string>([
+  PRIMARY_ORIGIN,
+  'https://cottonsmun26.com',
+  'https://www.cottonsmun26.com',
   'https://comun2026.netlify.app',
-  // Allow any Netlify preview deploy (deploy-preview-N--comun2026.netlify.app)
 ]);
 
-function allowedOrigin(event: HandlerEvent): string {
-  const origin = event.headers['origin'] || event.headers['Origin'] || '';
-  // Exact match or Netlify preview deploy match
-  if (ALLOWED_ORIGINS.has(origin) || /^https:\/\/deploy-preview-\d+--comun2026\.netlify\.app$/.test(origin)) {
-    return origin;
+/** Resolves the Access-Control-Allow-Origin value for a request. */
+function resolveOrigin(event?: HandlerEvent): string {
+  const origin = event?.headers?.['origin'] || event?.headers?.['Origin'] || '';
+  if (origin) {
+    const isAllowed =
+      ALLOWED_ORIGINS.has(origin) ||
+      // Netlify preview deploys: deploy-preview-N--<site>.netlify.app
+      /^https:\/\/deploy-preview-\d+--[a-z0-9-]+\.netlify\.app$/.test(origin) ||
+      // Local development
+      /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin);
+    if (isAllowed) return origin;
   }
-  // Localhost in dev
-  if (/^http:\/\/localhost(:\d+)?$/.test(origin) || /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) {
-    return origin;
-  }
-  // Fallback — do NOT return '*' on authenticated routes; return primary domain.
-  return 'https://comun2026.com';
+  // Fallback — never '*' on credentialed routes.
+  return PRIMARY_ORIGIN;
 }
 
-export function corsHeaders(event: HandlerEvent) {
+/** Credentialed CORS headers, reflecting the request origin when known. */
+export function corsHeaders(event?: HandlerEvent) {
   return {
-    'Access-Control-Allow-Origin': allowedOrigin(event),
+    'Access-Control-Allow-Origin': resolveOrigin(event),
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    // Fix #10 — required so the browser accepts Set-Cookie from credentialed requests.
+    'Access-Control-Allow-Credentials': 'true',
     'Vary': 'Origin',
   };
 }
 
-// Legacy static export kept for callers that don't have event context (e.g. registration-pdf).
-// Still better than '*' because registration-pdf is unauthenticated.
-export const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-};
+/**
+ * Default credentialed CORS headers for the primary origin, used by responses
+ * that are built without a request event in scope. NOT a wildcard — a wildcard
+ * is incompatible with credentialed requests.
+ */
+export const CORS = corsHeaders();
 
 export function json(statusCode: number, body: unknown, event?: HandlerEvent): HandlerResponse {
   return {
     statusCode,
-    headers: { 'Content-Type': 'application/json', ...(event ? corsHeaders(event) : CORS) },
+    headers: { 'Content-Type': 'application/json', ...corsHeaders(event) },
     body: JSON.stringify(body),
   };
 }
@@ -63,7 +79,7 @@ export const fail = (status: number, message: string, extra: Record<string, unkn
 /** CORS preflight. */
 export const preflight = (event?: HandlerEvent): HandlerResponse => ({
   statusCode: 204,
-  headers: event ? corsHeaders(event) : CORS,
+  headers: corsHeaders(event),
   body: '',
 });
 

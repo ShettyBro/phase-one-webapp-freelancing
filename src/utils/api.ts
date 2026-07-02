@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getToken, clearSession } from './auth';
+import { clearSession } from './auth';
 
 // Frontend deploys to Vercel; the backend (Netlify Functions) deploys separately.
 // In production set VITE_API_BASE_URL to the Netlify site's API URL, e.g.
@@ -11,15 +11,12 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 20000,
+  // Fix #10 — send the httpOnly auth cookie automatically on every request.
+  // The browser attaches the cookie; no Authorization header or localStorage read needed.
+  withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// No request interceptor needed — the browser sends the httpOnly cookie automatically.
 
 api.interceptors.response.use(
   (response) => response,

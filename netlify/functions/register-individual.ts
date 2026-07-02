@@ -77,6 +77,15 @@ export const handler: Handler = async (event) => {
     // ── Duplicate prevention (email / phone) ──
     const emails = delegates.map((d) => d.email!.trim().toLowerCase());
     const phones = delegates.map((d) => d.phone!.trim());
+
+    // Fix B7 — for double delegation, the two delegates must be distinct people.
+    // Catch it here with a clear message instead of hitting the DB unique
+    // constraint and returning the generic "already exists" error.
+    if (isDouble) {
+      if (emails[0] === emails[1]) return fail(400, 'Delegate 1 and Delegate 2 must use different email addresses.');
+      if (phones[0] === phones[1]) return fail(400, 'Delegate 1 and Delegate 2 must use different phone numbers.');
+    }
+
     const existingAppId = await findDuplicate(emails, phones);
     if (existingAppId) {
       return fail(409, 'A registration already exists for this email or phone number. Please contact the organizers if you need assistance.', {

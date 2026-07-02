@@ -16,5 +16,6 @@ export async function downloadRegistrationPdf(applicationId: string, phone: stri
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  // Defer revocation so the download isn't cancelled before it starts (Safari).
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

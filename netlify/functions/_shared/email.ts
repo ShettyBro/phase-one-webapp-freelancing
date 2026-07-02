@@ -22,15 +22,25 @@ function getTransporter(): Transporter {
       host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
       port: Number(process.env.BREVO_SMTP_PORT || 587),
       secure: false,
+      // Fix B11 — require STARTTLS so credentials/content are never sent in
+      // cleartext if the server would otherwise allow an unencrypted session.
+      requireTLS: true,
       auth: { user: process.env.BREVO_SMTP_USER, pass: process.env.BREVO_SMTP_PASS },
     });
   }
   return _transporter;
 }
 
-// Netlify sets URL automatically; allow override via SITE_URL env var.
+// Public site origin for email assets (logo/dove) and links. Prefer the
+// explicit PUBLIC_SITE_URL; fall back to Netlify's auto-set URL, then the
+// production domain. (Previously defaulted to the wrong domain.)
 function siteUrl(): string {
-  return (process.env.SITE_URL || process.env.URL || 'https://comun2026.netlify.app').replace(/\/$/, '');
+  return (
+    process.env.PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    process.env.URL ||
+    'https://cottonsmun26.com'
+  ).replace(/\/$/, '');
 }
 
 /**

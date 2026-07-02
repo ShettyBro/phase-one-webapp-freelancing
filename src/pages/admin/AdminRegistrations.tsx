@@ -5,12 +5,25 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../utils/api';
-import { getToken } from '../../utils/auth';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { AdminPageHeader, AdminCard, Spinner, EmptyState, ConfirmDialog } from '../../components/admin/AdminUI';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 const PAGE_SIZE = 25;
+
+// Cross-browser blob download: the anchor MUST be in the DOM for .click() to
+// work in Firefox/Safari, and the object URL is revoked on a delay so the
+// download isn't cancelled before it starts.
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 interface RegRow {
   id: string;
@@ -28,17 +41,15 @@ type SortKey = 'applicationId' | 'submittedAt' | 'primaryName';
 type SortDir = 'asc' | 'desc';
 
 // ── Export helper — raw fetch to avoid Content-Type:application/json ──────
+// Auth travels via the httpOnly cookie (fix #10), so credentials must be
+// included; there is no bearer token available to JS anymore.
 async function downloadExport(type: string, filename: string) {
-  const token = getToken();
   const res = await fetch(`${API_BASE}/admin-export?type=${type}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: 'include',
   });
   if (!res.ok) throw new Error('Export failed');
   const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
+  triggerDownload(blob, filename);
 }
 
 const AdminRegistrations: React.FC = () => {
@@ -55,16 +66,25 @@ const AdminRegistrations: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [exportBusy, setExportBusy] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [detailError, setDetailError] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     const params: Record<string, string> = {};
     if (q.trim()) params.q = q.trim();
     if (type) params.type = type;
-    const { data } = await api.get('/admin-registrations', { params });
-    setAll(data.registrations);
-    setPage(1);
-    setLoading(false);
+    try {
+      const { data } = await api.get('/admin-registrations', { params });
+      setAll(data.registrations);
+      setPage(1);
+    } catch {
+      // 401 is handled globally (redirect to login); show a message for the rest.
+      setLoadError('Could not load registrations. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   }, [q, type]);
 
   useEffect(() => {
@@ -95,9 +115,13 @@ const AdminRegistrations: React.FC = () => {
 
   // ── Detail drawer ───────────────────────────────────────────────────────
   const openDetail = async (id: string) => {
-    setDetailId(id); setDetail(null);
-    const { data } = await api.get('/admin-registrations', { params: { id } });
-    setDetail(data.registration);
+    setDetailId(id); setDetail(null); setDetailError(false);
+    try {
+      const { data } = await api.get('/admin-registrations', { params: { id } });
+      setDetail(data.registration);
+    } catch {
+      setDetailError(true);
+    }
   };
 
   // ── Delete ──────────────────────────────────────────────────────────────
@@ -157,7 +181,12 @@ const AdminRegistrations: React.FC = () => {
       </div>
 
       <AdminCard>
-        {loading ? <Spinner /> : rows.length === 0 ? <EmptyState message="No registrations found." /> : (
+        {loading ? <Spinner /> : loadError ? (
+          <div className="p-8 text-center">
+            <p className="font-sans text-sm text-comun-maroon-light mb-4">{loadError}</p>
+            <button onClick={() => load()} className="btn-secondary text-sm px-6 py-2.5">Retry</button>
+          </div>
+        ) : rows.length === 0 ? <EmptyState message="No registrations found." /> : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -236,7 +265,12 @@ const AdminRegistrations: React.FC = () => {
                 <h3 className="font-serif-display text-lg text-comun-gold">Registration Detail</h3>
                 <button onClick={() => setDetailId(null)} className="p-1.5 text-comun-muted hover:text-comun-gold"><X className="w-5 h-5" /></button>
               </div>
-              {!detail ? <Spinner /> : <RegistrationDetail detail={detail} regId={detailId} onDelete={isSuperAdmin ? () => setDeleteId(detailId) : undefined} />}
+              {detailError ? (
+                <div className="p-8 text-center">
+                  <p className="font-sans text-sm text-comun-maroon-light mb-4">Could not load this registration. Please try again.</p>
+                  <button onClick={() => openDetail(detailId)} className="btn-secondary text-sm px-6 py-2.5">Retry</button>
+                </div>
+              ) : !detail ? <Spinner /> : <RegistrationDetail detail={detail} regId={detailId} onDelete={isSuperAdmin ? () => setDeleteId(detailId) : undefined} />}
             </motion.div>
           </>
         )}
@@ -265,16 +299,13 @@ const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete?: () =
   const downloadPdf = async () => {
     setPdfLoading(true);
     try {
-      const token = getToken();
+      // Auth via httpOnly cookie (fix #10) — include credentials, no bearer token.
       const res = await fetch(`${API_BASE}/admin-registration-pdf?id=${regId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
       });
       if (!res.ok) throw new Error('PDF failed');
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `${detail.applicationId}.pdf`; a.click();
-      URL.revokeObjectURL(url);
+      triggerDownload(blob, `${detail.applicationId}.pdf`);
     } finally { setPdfLoading(false); }
   };
 

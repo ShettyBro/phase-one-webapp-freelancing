@@ -23,3 +23,44 @@
   from   = "/*"
   to     = "/index.html"
   status = 200
+
+# ── Security headers (applied to all responses from the CDN edge) ──────────
+# Fix #10 / defence-in-depth: Content-Security-Policy, X-Frame-Options, etc.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent the site from being embedded in iframes (clickjacking).
+    X-Frame-Options = "DENY"
+
+    # Force browsers to respect the declared Content-Type (MIME-sniffing).
+    X-Content-Type-Options = "nosniff"
+
+    # Tell browsers to only send the origin in Referer, not the full path.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Permissions-Policy: opt-out of browser features the app doesn't need.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+
+    # Content-Security-Policy.
+    # - default-src 'self'          → block everything not explicitly allowed
+    # - script-src 'self'           → no inline scripts, no eval (XSS mitigation)
+    # - style-src 'self' 'unsafe-inline' → allow Tailwind/CSS-in-JS inline styles
+    # - img-src 'self' data: blob:  → allow data URIs and blob URLs for images
+    # - font-src 'self' fonts.gstatic.com → Google Fonts
+    # - connect-src 'self' *.netlify.app *.r2.cloudflarestorage.com
+    #     → API calls back to Netlify and direct R2 uploads from the browser
+    # - frame-ancestors 'none'      → belt-and-suspenders anti-clickjack
+    # - object-src 'none'           → block Flash / plugins entirely
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: blob:;
+      connect-src 'self' https://*.netlify.app https://*.r2.cloudflarestorage.com;
+      media-src 'self' blob:;
+      frame-ancestors 'none';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    """

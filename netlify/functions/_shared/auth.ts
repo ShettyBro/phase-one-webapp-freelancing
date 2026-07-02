@@ -17,12 +17,17 @@ export interface AdminClaims {
   username: string;
 }
 
+/** Returns the session duration in hours for the given role. */
+export function sessionHours(role: Role): number {
+  return role === 'SUPER_ADMIN' ? SUPER_ADMIN_HOURS : ADMIN_HOURS;
+}
+
 /**
  * Signs a time-limited JWT for the given admin.
- * Super Admins now get an expiry too (was previously never-expiring — security fix #2).
+ * Both roles now have an expiry (super-admin was previously never-expiring — fix #2).
  */
 export function signAdminToken(claims: AdminClaims): { token: string; expiresInMs: number } {
-  const hours = claims.role === 'SUPER_ADMIN' ? SUPER_ADMIN_HOURS : ADMIN_HOURS;
+  const hours = sessionHours(claims.role);
   const expiresInMs = hours * 60 * 60 * 1000;
   return {
     token: jwt.sign(claims, SECRET, { expiresIn: `${hours}h`, algorithm: 'HS256' }),
@@ -30,10 +35,47 @@ export function signAdminToken(claims: AdminClaims): { token: string; expiresInM
   };
 }
 
+/**
+ * Builds a Set-Cookie header value for the admin session token.
+ * Fix #10 — the token is delivered as an httpOnly Secure SameSite=Strict cookie
+ * so it cannot be read or exfiltrated by JavaScript running on the page.
+ */
+export function buildTokenCookie(token: string, hours: number): string {
+  const maxAge = hours * 60 * 60;
+  // SameSite=None is needed when the frontend and API are on different domains
+  // (e.g. Vercel frontend + Netlify API). If they are same-origin use Strict.
+  const sameSite = process.env.COOKIE_SAMESITE || 'None';
+  return [
+    `adminToken=${token}`,
+    'HttpOnly',
+    'Secure',
+    `SameSite=${sameSite}`,
+    `Max-Age=${maxAge}`,
+    'Path=/',
+  ].join('; ');
+}
+
+/** Returns a Set-Cookie value that immediately expires the adminToken cookie (logout). */
+export function clearTokenCookie(): string {
+  return 'adminToken=; HttpOnly; Secure; SameSite=None; Max-Age=0; Path=/';
+}
+
+/**
+ * Extracts the admin JWT from the request.
+ * Fix #10 — primary source is the httpOnly cookie; Bearer header is kept as
+ * a fallback so CLI tools / local development with curl still work.
+ */
 export function getBearer(event: HandlerEvent): string | null {
+  // 1. Prefer the httpOnly cookie (browser sends this automatically).
+  const cookieHeader = event.headers['cookie'] || event.headers['Cookie'] || '';
+  const cookieMatch = cookieHeader.match(/(?:^|;\s*)adminToken=([^;]+)/);
+  if (cookieMatch) return cookieMatch[1];
+
+  // 2. Fallback: Authorization: Bearer <token>  (CLI / local dev / raw fetch)
   const h = event.headers['authorization'] || event.headers['Authorization'];
-  if (!h || !h.startsWith('Bearer ')) return null;
-  return h.slice(7);
+  if (h && h.startsWith('Bearer ')) return h.slice(7);
+
+  return null;
 }
 
 /**
@@ -42,8 +84,6 @@ export function getBearer(event: HandlerEvent): string | null {
  * their outstanding tokens).
  *
  * Pass `requiredRole: 'SUPER_ADMIN'` to restrict to super admins.
- * Returns the DB admin row alongside the JWT claims so callers don't need a
- * second DB round-trip.
  */
 export async function authenticate(
   event: HandlerEvent,
@@ -67,8 +107,6 @@ export async function authenticate(
   }
 
   // Fix #1 — verify the admin still exists and is active.
-  // This ensures that deactivating or deleting an admin immediately revokes access,
-  // even for tokens that haven't yet expired.
   try {
     const admin = await prisma.admin.findUnique({
       where: { id: claims.sub },
@@ -78,7 +116,6 @@ export async function authenticate(
       return { error: { status: 401, message: 'Account not found or has been deactivated.' } };
     }
   } catch {
-    // If the DB is unreachable, fail safe rather than granting access.
     return { error: { status: 503, message: 'Authentication check failed. Please try again.' } };
   }
 

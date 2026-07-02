@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import api from '../utils/api';
-import { saveSession, clearSession, getToken, getMsUntilExpiry } from '../utils/auth';
+import { saveSession, clearSession, isLoggedIn, getMsUntilExpiry } from '../utils/auth';
 
 export type AdminRole = 'ADMIN' | 'SUPER_ADMIN';
 
@@ -15,12 +15,11 @@ interface AdminAuthContextValue {
   admin: AdminUser | null;
   loading: boolean;
   isSuperAdmin: boolean;
-  msUntilExpiry: number | null; // null = never expires (super admin)
+  msUntilExpiry: number | null; // null = no countdown shown (super admin)
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-const NEVER = 100 * 365 * 24 * 60 * 60 * 1000; // ~100y sentinel for super admin
 const AdminAuthContext = createContext<AdminAuthContextValue | undefined>(undefined);
 
 export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -29,11 +28,12 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [msUntilExpiry, setMsUntilExpiry] = useState<number | null>(null);
 
   const doLogout = useCallback(async (notifyServer = true) => {
-    if (notifyServer && getToken()) {
+    if (notifyServer) {
       try {
+        // Tell the server to clear the httpOnly cookie.
         await api.post('/auth-logout');
       } catch {
-        /* ignore */
+        /* ignore — cookie will expire on its own */
       }
     }
     clearSession();
@@ -41,17 +41,16 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setMsUntilExpiry(null);
   }, []);
 
-  // Restore session on mount.
+  // Restore session on mount — call /auth-me which uses the httpOnly cookie.
+  // Fix #10: We no longer check localStorage for a token; the cookie does
+  // that automatically. If the cookie is absent/expired, /auth-me returns 401.
   useEffect(() => {
     (async () => {
-      if (!getToken()) {
-        setLoading(false);
-        return;
-      }
       try {
         const { data } = await api.get('/auth-me');
         setAdmin(data.admin);
       } catch {
+        // 401 = no valid cookie, or cookie expired. Clear metadata.
         clearSession();
       } finally {
         setLoading(false);
@@ -59,7 +58,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     })();
   }, []);
 
-  // Session countdown + auto-logout (skipped for super admin).
+  // Session countdown + auto-logout driven by the client-side expiry metadata
+  // stored in localStorage (the timestamp only — not the token itself).
   useEffect(() => {
     if (!admin) return;
     if (admin.role === 'SUPER_ADMIN') {
@@ -69,7 +69,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const tick = () => {
       const ms = getMsUntilExpiry();
       setMsUntilExpiry(ms);
-      if (ms <= 0) doLogout(false);
+      if (ms <= 0 && isLoggedIn() === false) doLogout(false);
     };
     tick();
     const interval = setInterval(tick, 1000);
@@ -77,9 +77,12 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [admin, doLogout]);
 
   const login = useCallback(async (username: string, password: string) => {
+    // The server sets the httpOnly cookie in the response headers.
+    // We only store non-secret metadata (username, expiry) in localStorage.
     const { data } = await api.post('/auth-login', { username, password });
-    const expires = data.expiresInMs && data.expiresInMs > 0 ? data.expiresInMs : NEVER;
-    saveSession(data.token, data.admin.username, expires);
+    // expiresInMs: 0 means the server set a long-lived cookie; treat as no countdown.
+    const expiresInMs = data.expiresInMs && data.expiresInMs > 0 ? data.expiresInMs : 0;
+    saveSession(data.admin.username, expiresInMs > 0 ? expiresInMs : 24 * 60 * 60 * 1000);
     setAdmin(data.admin);
   }, []);
 

@@ -151,7 +151,6 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
             onChange={setCommittee}
             placeholder="Select a committee"
             options={COMMITTEES
-              .filter((c) => c.code !== DOUBLE_COMMITTEE)
               .map((c) => ({ value: c.code, label: `${c.name} — ${c.fullName}` }))}
           />
         )}
