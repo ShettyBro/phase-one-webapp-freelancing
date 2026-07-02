@@ -6,6 +6,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../utils/api';
 import { getToken } from '../../utils/auth';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import { AdminPageHeader, AdminCard, Spinner, EmptyState, ConfirmDialog } from '../../components/admin/AdminUI';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -41,6 +42,7 @@ async function downloadExport(type: string, filename: string) {
 }
 
 const AdminRegistrations: React.FC = () => {
+  const { isSuperAdmin } = useAdminAuth();
   const [all, setAll] = useState<RegRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
@@ -128,10 +130,15 @@ const AdminRegistrations: React.FC = () => {
               onClick={() => doExport('individual-single', 'Individual_Single_Delegates.xlsx')} />
             <ExportBtn label="Double XLSX" busy={exportBusy === 'individual-double'} icon={<FileSpreadsheet className="w-3.5 h-3.5" />}
               onClick={() => doExport('individual-double', 'Individual_Double_Delegates.xlsx')} />
-            <ExportBtn label="Institution ZIP" busy={exportBusy === 'institutional-zip'} icon={<Archive className="w-3.5 h-3.5" />}
-              onClick={() => doExport('institutional-zip', 'Institutional_Registrations.zip')} />
-            <ExportBtn label="ID Proofs ZIP" busy={exportBusy === 'id-proof-zip'} icon={<Archive className="w-3.5 h-3.5" />}
-              onClick={() => doExport('id-proof-zip', 'Individual_ID_Proofs.zip')} />
+            {/* Fix #11 — ZIP exports (bulk PII) only shown to SUPER_ADMIN */}
+            {isSuperAdmin && (
+              <>
+                <ExportBtn label="Institution ZIP" busy={exportBusy === 'institutional-zip'} icon={<Archive className="w-3.5 h-3.5" />}
+                  onClick={() => doExport('institutional-zip', 'Institutional_Registrations.zip')} />
+                <ExportBtn label="ID Proofs ZIP" busy={exportBusy === 'id-proof-zip'} icon={<Archive className="w-3.5 h-3.5" />}
+                  onClick={() => doExport('id-proof-zip', 'Individual_ID_Proofs.zip')} />
+              </>
+            )}
           </div>
         }
       />
@@ -182,7 +189,10 @@ const AdminRegistrations: React.FC = () => {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openDetail(r.id)} className="p-2 text-comun-muted hover:text-comun-gold transition-colors" title="View"><Eye className="w-4 h-4" /></button>
-                        <button onClick={() => setDeleteId(r.id)} className="p-2 text-comun-muted hover:text-comun-maroon-light transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                        {/* Fix #11 — Delete only shown to SUPER_ADMIN */}
+                        {isSuperAdmin && (
+                          <button onClick={() => setDeleteId(r.id)} className="p-2 text-comun-muted hover:text-comun-maroon-light transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -226,7 +236,7 @@ const AdminRegistrations: React.FC = () => {
                 <h3 className="font-serif-display text-lg text-comun-gold">Registration Detail</h3>
                 <button onClick={() => setDetailId(null)} className="p-1.5 text-comun-muted hover:text-comun-gold"><X className="w-5 h-5" /></button>
               </div>
-              {!detail ? <Spinner /> : <RegistrationDetail detail={detail} regId={detailId} onDelete={() => setDeleteId(detailId)} />}
+              {!detail ? <Spinner /> : <RegistrationDetail detail={detail} regId={detailId} onDelete={isSuperAdmin ? () => setDeleteId(detailId) : undefined} />}
             </motion.div>
           </>
         )}
@@ -249,7 +259,7 @@ const ExportBtn: React.FC<{ label: string; busy: boolean; icon: React.ReactNode;
 
 // ── Registration detail drawer content ────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete: () => void }> = ({ detail, regId, onDelete }) => {
+const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete?: () => void }> = ({ detail, regId, onDelete }) => {
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const downloadPdf = async () => {
@@ -334,10 +344,12 @@ const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete: () =>
         </div>
       )}
 
-      <button onClick={onDelete}
-        className="mt-6 w-full text-sm px-5 py-2.5 rounded-sm font-sans font-semibold uppercase tracking-wider bg-comun-maroon/80 text-white hover:bg-comun-maroon transition-colors inline-flex items-center justify-center gap-2">
-        <Trash2 className="w-4 h-4" /> Delete Registration
-      </button>
+      {onDelete && (
+        <button onClick={onDelete}
+          className="mt-6 w-full text-sm px-5 py-2.5 rounded-sm font-sans font-semibold uppercase tracking-wider bg-comun-maroon/80 text-white hover:bg-comun-maroon transition-colors inline-flex items-center justify-center gap-2">
+          <Trash2 className="w-4 h-4" /> Delete Registration
+        </button>
+      )}
     </div>
   );
 };

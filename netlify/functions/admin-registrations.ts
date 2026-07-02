@@ -79,6 +79,11 @@ export const handler: Handler = async (event) => {
     }
 
     if (event.httpMethod === 'DELETE' && id) {
+      // Fix #11 — hard deletes of registrations are restricted to SUPER_ADMIN.
+      if (auth.claims.role !== 'SUPER_ADMIN') {
+        return fail(403, 'Forbidden — only Super Admins can delete registrations.');
+      }
+
       const reg = await prisma.registration.findUnique({ where: { id }, include: { files: true } });
       if (!reg) return fail(404, 'Registration not found.');
 

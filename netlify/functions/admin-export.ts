@@ -55,11 +55,14 @@ export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
   if (event.httpMethod !== 'GET') return fail(405, 'Method not allowed.');
 
-  const auth = await authenticate(event);
-  if ('error' in auth) return fail(auth.error.status, auth.error.message, { expired: auth.error.expired });
-
+  // Fix #11 — ZIP exports contain bulk PII; gate them to SUPER_ADMIN.
+  // XLSX exports (individual-single, individual-double) remain accessible to all admins.
   const type = event.queryStringParameters?.type as ExportType | undefined;
   if (!type) return fail(400, 'type query param is required.');
+
+  const isZipExport = type === 'institutional-zip' || type === 'id-proof-zip';
+  const auth = await authenticate(event, isZipExport ? 'SUPER_ADMIN' : undefined);
+  if ('error' in auth) return fail(auth.error.status, auth.error.message, { expired: auth.error.expired });
 
   try {
     // ── Export 1: Individual Single ─────────────────────────────────────────
@@ -185,16 +188,15 @@ export const handler: Handler = async (event) => {
       const masterBuf: Buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
       zip.file('Master_List.xlsx', masterBuf);
 
-      // One folder per institution with their spreadsheet
-      await Promise.all(
-        regs.map(async (r) => {
-          if (!r.files[0]) return;
-          const buf = await downloadR2File(r.files[0].r2Key);
-          if (!buf) return;
-          const folder = safeFilename(r.institutionName || r.applicationId);
-          zip.folder(folder)!.file(r.files[0].fileName, buf);
-        }),
-      );
+      // Fix #12 — sequential downloads instead of Promise.all to prevent OOM.
+      // Files are downloaded one-by-one and added to the ZIP as we go.
+      for (const r of regs) {
+        if (!r.files[0]) continue;
+        const buf = await downloadR2File(r.files[0].r2Key);
+        if (!buf) continue;
+        const folder = safeFilename(r.institutionName || r.applicationId);
+        zip.folder(folder)!.file(r.files[0].fileName, buf);
+      }
 
       const zipBuf: Buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 
@@ -224,19 +226,18 @@ export const handler: Handler = async (event) => {
 
       const zip = new JSZip();
 
-      await Promise.all(
-        regs.flatMap((r) =>
-          r.files.map(async (f) => {
-            const buf = await downloadR2File(f.r2Key);
-            if (!buf) return;
-            const ext = f.fileName.split('.').pop() || 'bin';
-            const delegateName = r.delegates[0]?.name ?? 'Unknown';
-            const safeName = safeFilename(delegateName).replace(/\s+/g, '_');
-            const filename = `${r.applicationId}_${safeName}.${ext}`;
-            zip.file(filename, buf);
-          }),
-        ),
-      );
+      // Fix #12 — sequential downloads to prevent OOM (was Promise.all).
+      for (const r of regs) {
+        for (const f of r.files) {
+          const buf = await downloadR2File(f.r2Key);
+          if (!buf) continue;
+          const ext = f.fileName.split('.').pop() || 'bin';
+          const delegateName = r.delegates[0]?.name ?? 'Unknown';
+          const safeName = safeFilename(delegateName).replace(/\s+/g, '_');
+          const filename = `${r.applicationId}_${safeName}.${ext}`;
+          zip.file(filename, buf);
+        }
+      }
 
       const zipBuf: Buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 
