@@ -34,9 +34,9 @@ export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index, 
     >
       {/* Card body */}
       <div
-        className="relative overflow-hidden rounded-sm border border-comun-gold/10 group-hover:border-comun-gold/45 transition-colors duration-400 h-full"
+        className="relative overflow-hidden rounded-sm border border-comun-gold/15 group-hover:border-comun-gold/55 transition-colors duration-400 h-full"
         style={{
-          background: 'linear-gradient(135deg, rgba(12,8,22,0.92) 0%, rgba(20,10,28,0.85) 100%)',
+          background: 'linear-gradient(135deg, rgba(28,16,52,0.95) 0%, rgba(36,18,44,0.90) 100%)',
           backdropFilter: 'blur(12px)',
           boxShadow: '0 0 0 0 rgba(255,208,0,0)',
           transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
@@ -57,9 +57,9 @@ export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index, 
         />
 
         {/* Corner bracket TL */}
-        <div className="absolute top-3 left-3 w-4 h-4 border-t border-l border-comun-gold/20 group-hover:border-comun-gold/60 transition-colors duration-400" />
+        <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-comun-gold/30 group-hover:border-comun-gold/70 transition-colors duration-400" />
         {/* Corner bracket BR */}
-        <div className="absolute bottom-3 right-3 w-4 h-4 border-b border-r border-comun-gold/20 group-hover:border-comun-gold/60 transition-colors duration-400" />
+        <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-comun-gold/30 group-hover:border-comun-gold/70 transition-colors duration-400" />
 
         {/* Main content */}
         <div className="relative px-6 py-6 flex flex-col gap-3 h-full min-h-[148px]">
@@ -67,7 +67,7 @@ export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index, 
           {/* Category pill */}
           <div className="flex items-center gap-2">
             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dot}`} />
-            <span className="font-sans text-[10px] text-comun-muted/70 tracking-[0.18em] uppercase">
+            <span className="font-sans text-[10px] text-comun-muted/90 tracking-[0.18em] uppercase">
               {meta.label}
             </span>
           </div>
@@ -78,7 +78,7 @@ export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index, 
           </h3>
 
           {/* Full name */}
-          <p className="font-sans text-xs text-comun-muted/75 leading-snug flex-1">
+          <p className="font-sans text-xs text-comun-muted/90 leading-snug flex-1">
             {committee.fullName}
           </p>
 

@@ -9,15 +9,35 @@ import { DoveAccent } from '../ui/DoveAccent';
 const CommitteesSection: React.FC = () => {
   const [selectedCommittee, setSelectedCommittee] = useState<Committee | null>(null);
 
-  // Lock body scroll when modal is open to improve UI/UX
+  // Robust scroll lock — works on iOS, Android and all desktop browsers.
+  // Saves current scroll position, then uses position:fixed so the page
+  // stays frozen at exactly that spot. Restores on close.
   useEffect(() => {
     if (selectedCommittee) {
-      document.body.style.overflow = 'hidden';
+      const scrollY = window.scrollY;
+      document.body.style.overflow   = 'hidden';
+      document.body.style.position   = 'fixed';
+      document.body.style.top        = `-${scrollY}px`;
+      document.body.style.width      = '100%';
+      document.documentElement.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      const top = document.body.style.top;
+      document.body.style.overflow   = '';
+      document.body.style.position   = '';
+      document.body.style.top        = '';
+      document.body.style.width      = '';
+      document.documentElement.style.overflow = '';
+      // Restore exact scroll position so page doesn't jump to top.
+      if (top) window.scrollTo(0, -parseInt(top, 10));
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      const top = document.body.style.top;
+      document.body.style.overflow   = '';
+      document.body.style.position   = '';
+      document.body.style.top        = '';
+      document.body.style.width      = '';
+      document.documentElement.style.overflow = '';
+      if (top) window.scrollTo(0, -parseInt(top, 10));
     };
   }, [selectedCommittee]);
 
@@ -61,22 +81,33 @@ const CommitteesSection: React.FC = () => {
       {/* Committee Info Modal */}
       <AnimatePresence>
         {selectedCommittee && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            onClick={() => setSelectedCommittee(null)}
+          >
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-              onClick={() => setSelectedCommittee(null)}
+              className="absolute inset-0 bg-black/85 backdrop-blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className={`relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-gradient-to-br ${selectedCommittee.color} border border-comun-gold/20 rounded-md shadow-2xl z-10 custom-scrollbar`}
-              style={{ backdropFilter: 'blur(16px)' }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              onClick={e => e.stopPropagation()}
+              className={`relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-sm shadow-2xl z-10`}
+              style={{
+                backdropFilter: 'blur(20px)',
+                background: 'linear-gradient(145deg, rgba(10,6,20,0.97) 0%, rgba(18,10,30,0.95) 100%)',
+                border: '1px solid rgba(255,208,0,0.25)',
+                boxShadow: '0 0 60px rgba(255,208,0,0.1), 0 24px 64px rgba(0,0,0,0.6)',
+              }}
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-comun-gold-dark via-comun-gold to-comun-gold-dark" />
+              {/* Gold top bar */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-comun-maroon via-comun-gold to-comun-maroon" />
               
               <div className="p-6 md:p-8">
                 <div className="flex justify-between items-start mb-6">
