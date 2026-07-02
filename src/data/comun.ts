@@ -36,15 +36,23 @@ export interface Committee {
   fullName:  string;
   category:  'General' | 'Security' | 'Crisis' | 'Special';
   color:     string;
+  agenda?: string;
+  format?: string;
+  chairperson?: string;
+  description?: string;
 }
 
 export const COMMITTEES: Committee[] = [
   {
     code:     'DISEC',
     name:     'DISEC',
-    fullName: 'Disarmament & International Security Committee',
+    fullName: 'Disarmament & International Security Council',
     category: 'General',
     color:    'from-blue-900/40 to-blue-800/20',
+    agenda: 'Deliberating on the Regulation and Dismantlement of Arms Networks, with Respect to the Rising Military Tensions in the Middle East.',
+    format: 'Double Delegation',
+    chairperson: 'Ayush Prem',
+    description: 'Focuses on global arms supply chains and their role in escalating Middle Eastern conflicts. Delegates analyze illicit arms transfers, maritime security threats, and international legal frameworks, proposing solutions such as sanctions, export controls, and verification regimes to reduce conflict escalation.',
   },
   {
     code:     'UNODC',
@@ -52,6 +60,10 @@ export const COMMITTEES: Committee[] = [
     fullName: 'United Nations Office on Drugs and Crime',
     category: 'Special',
     color:    'from-purple-900/40 to-purple-800/20',
+    agenda: 'Addressing the rise of synthetic drugs and new psychoactive substances and their distribution through online drug trafficking and digital platforms by transnational criminal networks.',
+    format: 'Single Delegation',
+    chairperson: 'Dhruv Kulkarni',
+    description: 'Explores the global challenge of synthetic drugs and digital trafficking networks. Delegates work on strengthening international cooperation, improving legal frameworks, and balancing public health with law enforcement in a rapidly evolving digital landscape.',
   },
   {
     code:     'SPECPOL',
@@ -59,6 +71,10 @@ export const COMMITTEES: Committee[] = [
     fullName: 'Special Political & Decolonization Committee',
     category: 'General',
     color:    'from-emerald-900/40 to-emerald-800/20',
+    agenda: 'The Role of UN Peacekeeping Operations and Special Political Missions in Advancing Self-Determination and Stability in Non-Self-Governing Territories (NSGTs) and Post-Colonial Contexts.',
+    format: 'Single Delegation',
+    chairperson: 'Syed Adeeb',
+    description: 'Examines peacekeeping and political missions in supporting governance and stability. Delegates assess mandates, sovereignty challenges, and international responsibility while proposing solutions for inclusive and sustainable political transitions.',
   },
   {
     code:     'UNSC',
@@ -66,13 +82,21 @@ export const COMMITTEES: Committee[] = [
     fullName: 'United Nations Security Council',
     category: 'Security',
     color:    'from-red-900/40 to-red-800/20',
+    agenda: 'The Aegean Sea Dispute',
+    format: 'Single Delegation',
+    chairperson: 'Sukrit Sivaprasad',
+    description: 'Addresses maritime sovereignty conflicts in the Aegean Sea. Delegates explore legal disputes, territorial claims, and international frameworks, aiming to draft enforceable policies that prevent escalation and maintain regional stability.',
   },
   {
     code:     'CCC',
     name:     'CCC',
-    fullName: 'Cabinet Crisis Committee',
+    fullName: 'Continuous Crisis Committee',
     category: 'Crisis',
     color:    'from-orange-900/40 to-orange-800/20',
+    agenda: 'CLASSIFIED',
+    format: 'Single Delegation',
+    chairperson: 'Thavanes Kanakaraj',
+    description: 'A fast-paced crisis simulation where information evolves dynamically. Delegates must respond in real-time to unfolding situations, testing adaptability, strategic thinking, and crisis management skills.',
   },
   {
     code:     'IPC-J',
@@ -80,6 +104,10 @@ export const COMMITTEES: Committee[] = [
     fullName: 'International Press Corps – Journalism',
     category: 'Special',
     color:    'from-cyan-900/40 to-cyan-800/20',
+    agenda: 'Not specified (Press Committee)',
+    format: 'Single Delegation',
+    chairperson: 'Glenn Harel',
+    description: 'Journalists act as observers and storytellers, reporting debates, investigating narratives, and shaping public perception. They translate complex discussions into accessible content while ensuring accountability and transparency.',
   },
   {
     code:     'IPC-P',
@@ -87,6 +115,10 @@ export const COMMITTEES: Committee[] = [
     fullName: 'International Press Corps – Photography',
     category: 'Special',
     color:    'from-amber-900/40 to-amber-800/20',
+    agenda: 'Not specified (Press Committee)',
+    format: 'Single Delegation',
+    chairperson: 'Saayush Pal',
+    description: 'Photographers document the conference visually, capturing key moments and emotions. Their work shapes how events are remembered and presented, combining storytelling with ethical and artistic responsibility.',
   },
 ] as const;
 
@@ -169,7 +201,7 @@ export const FAQS = [
   {
     question: 'How do I register?',
     answer:
-      'Registration will open soon. You can register as an individual delegate, as part of a school delegation (institutional registration), or specifically for Special Committees such as IPC and CCC. Keep an eye on this page for updates.',
+      'You can register through the link provided above. Individuals can register by themselves or as part of a school delegation.',
   },
   {
     question: 'What committees are available?',

@@ -2,21 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { Committee } from '../../data/comun';
 
-// ─── Category Badge ───────────────────────────────────────────────────────
-const categoryColors: Record<Committee['category'], string> = {
-  General:  'bg-blue-500/10 text-blue-300 border-blue-500/20',
-  Security: 'bg-red-500/10 text-red-300 border-red-500/20',
-  Crisis:   'bg-orange-500/10 text-orange-300 border-orange-500/20',
-  Special:  'bg-purple-500/10 text-purple-300 border-purple-500/20',
-};
-
 // ─── Committee Card ───────────────────────────────────────────────────────
 interface CommitteeCardProps {
   committee: Committee;
   index: number;
+  onClick: () => void;
 }
 
-export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index }) => (
+export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index, onClick }) => (
   <motion.div
     initial={{ opacity: 0, y: 28 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -27,10 +20,11 @@ export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index }
       ease: [0.22, 1, 0.36, 1],
     }}
     whileHover={{ y: -6, scale: 1.015, transition: { duration: 0.25, ease: 'easeOut' } }}
+    onClick={onClick}
     className={`
       relative group cursor-pointer overflow-hidden
       bg-gradient-to-br ${committee.color}
-      border border-comun-gold/10 hover:border-comun-gold/30
+      border border-comun-gold/10 hover:border-comun-gold/50 hover:shadow-[0_0_30px_rgba(255,208,0,0.15)]
       transition-all duration-300
     `}
     style={{ backdropFilter: 'blur(8px)' }}
@@ -46,19 +40,11 @@ export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index }
     <div className="absolute inset-0 bg-comun-gold/0 group-hover:bg-comun-gold/3 transition-colors duration-400" />
 
     <div className="relative p-6 flex flex-col gap-4">
-      {/* Code + Category */}
+      {/* Code */}
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-serif-display text-3xl md:text-4xl font-semibold text-comun-white group-hover:text-gold-gradient transition-all duration-300">
           {committee.name}
         </h3>
-        <span
-          className={`
-            flex-shrink-0 font-sans text-[10px] font-semibold tracking-[0.18em] uppercase
-            px-2.5 py-1 border ${categoryColors[committee.category]}
-          `}
-        >
-          {committee.category}
-        </span>
       </div>
 
       {/* Full name */}
