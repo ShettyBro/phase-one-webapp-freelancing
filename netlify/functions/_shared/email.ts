@@ -17,16 +17,31 @@ function esc(value: unknown): string {
 
 let _transporter: Transporter | null = null;
 function getTransporter(): Transporter {
-  if (!_transporter) {
-    _transporter = nodemailer.createTransport({
-      host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
-      port: Number(process.env.BREVO_SMTP_PORT || 587),
-      secure: false, // port 587 uses STARTTLS upgrade (not direct TLS)
-      auth: { user: process.env.BREVO_SMTP_USER, pass: process.env.BREVO_SMTP_PASS },
-    });
-  }
+  // Always create a fresh transporter — reusing a module-level singleton across
+  // warm Lambda invocations causes stale SMTP connections that fail with 535.
+  // This matches the working scripts/test-email.mjs pattern exactly.
+  const host = process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com';
+  const port = Number(process.env.BREVO_SMTP_PORT || 587);
+  const user = process.env.BREVO_SMTP_USER;
+  const pass = process.env.BREVO_SMTP_PASS;
+
+  // Log partial credentials so missing env vars are immediately obvious in logs.
+  console.log('[email] SMTP config:', {
+    host,
+    port,
+    user: user ? user.slice(0, 4) + '…' : '(MISSING)',
+    pass: pass ? '✓ set' : '(MISSING)',
+  });
+
+  _transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: false, // port 587 uses STARTTLS upgrade (not direct TLS)
+    auth: { user, pass },
+  });
   return _transporter;
 }
+
 
 // Public site origin for email assets (logo/dove) and links. Prefer the
 // explicit PUBLIC_SITE_URL; fall back to Netlify's auto-set URL, then the
