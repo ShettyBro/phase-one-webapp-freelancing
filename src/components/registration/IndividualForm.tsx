@@ -166,7 +166,12 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
 
       {/* Payment Section */}
       <div className="glass gold-border rounded-md p-6 flex flex-col gap-5">
-        <h3 className="font-serif-display text-xl text-comun-gold">Payment Details</h3>
+        <div>
+          <h3 className="font-serif-display text-xl text-comun-gold mb-1">Payment Details</h3>
+          <p className="font-sans text-sm text-comun-muted">
+            Registration Fee: <strong className="text-comun-white text-base">₹{isDouble ? '2,800' : '1,500'}</strong>
+          </p>
+        </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
@@ -213,7 +218,7 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
             className="mt-2 p-5 border border-comun-gold/20 bg-comun-gold/5 rounded-md flex flex-col gap-4 overflow-hidden"
           >
             <div>
-              <p className="font-sans text-sm text-comun-white mb-2">Please transfer the registration fee to the following account:</p>
+              <p className="font-sans text-sm text-comun-white mb-2">Please transfer the registration fee of <strong className="text-comun-gold">₹{isDouble ? '2,800' : '1,500'}</strong> to the following account:</p>
               <div className="font-mono text-sm text-comun-gold/80 bg-black/20 p-3 rounded border border-white/5 space-y-1">
                 <p><strong>Name:</strong> BISHOP COTTON BOYS' SCHOOL</p>
                 <p><strong>A/C No:</strong> 410202050000024</p>
