@@ -485,9 +485,23 @@ const RegisterPage: React.FC = () => {
                 <p className="font-sans text-xs text-comun-gold/60 uppercase tracking-widest mb-3">Payment Information</p>
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="flex-1">
-                    <p className="font-sans text-sm text-comun-white mb-2">Cost per Delegate: <strong className="text-comun-gold font-semibold">₹1,500</strong></p>
-                    <p className="font-sans text-xs text-comun-muted">Example: 10 Delegates × ₹1,500 = ₹15,000</p>
-                    <div className="mt-4 font-mono text-sm text-comun-gold/80 bg-black/20 p-3 rounded border border-white/5 space-y-1 inline-block">
+                    {/* Pricing formula */}
+                    <div className="mb-3 space-y-1">
+                      <p className="font-sans text-sm text-comun-white">
+                        Cost per Delegate: <strong className="text-comun-gold font-semibold">₹1,500</strong>
+                      </p>
+                      <p className="font-sans text-sm text-comun-white">
+                        Institutional Registration Fee: <strong className="text-comun-gold font-semibold">₹1,500</strong>{' '}
+                        <span className="text-comun-muted text-xs">(flat, charged once)</span>
+                      </p>
+                    </div>
+                    {/* Formula */}
+                    <div className="bg-black/20 border border-comun-gold/10 rounded p-3 mb-4 text-xs font-mono text-comun-muted space-y-0.5">
+                      <p className="text-comun-white/70 font-semibold mb-1">Formula:</p>
+                      <p>(No. of Delegates × ₹1,500) + ₹1,500 = Total</p>
+                      <p className="text-comun-gold/70 font-semibold mt-1">Example: (10 × ₹1,500) + ₹1,500 = <strong className="text-comun-gold">₹16,500</strong></p>
+                    </div>
+                    <div className="mt-2 font-mono text-sm text-comun-gold/80 bg-black/20 p-3 rounded border border-white/5 space-y-1 inline-block">
                       <p><strong>Name:</strong> BISHOP COTTON BOYS' SCHOOL</p>
                       <p><strong>A/C No:</strong> 410202050000024</p>
                       <p><strong>IFSC:</strong> UBIN0541028</p>

@@ -37,11 +37,15 @@ export const RESOURCE_FILE = {
   maxBytes: 25 * 1024 * 1024, // 25 MB (admin-uploaded public docs)
 };
 
-// ── Fees (amount payable at the Registration Desk) ──
+// ── Fees ──
 export const FEES = {
-  INDIVIDUAL_SINGLE: 1500,     // ₹1,500 per delegate
-  INDIVIDUAL_DOUBLE: 3000,     // ₹1,500 × 2 delegates
-  INSTITUTIONAL: 0,            // billed per delegate at the desk
+  INDIVIDUAL_SINGLE: 1500,         // ₹1,500 per delegate
+  INDIVIDUAL_DOUBLE: 3000,         // ₹1,500 × 2 delegates
+  /** Flat institution registration fee charged once per institution */
+  INSTITUTIONAL_FLAT: 1500,
+  /** Per-delegate fee for institutional registrations */
+  INSTITUTIONAL_PER_DELEGATE: 1500,
+  INSTITUTIONAL: 0,                // total billed at desk (unknown until delegate count confirmed)
 } as const;
 
 export const CURRENCY = 'INR';
