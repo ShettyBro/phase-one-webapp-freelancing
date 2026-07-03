@@ -38,12 +38,10 @@ export const RESOURCE_FILE = {
 };
 
 // ── Fees (amount payable at the Registration Desk) ──
-// TODO: confirm final amounts with the organizers. Stored on each registration
-// and printed on the PDF.
 export const FEES = {
-  INDIVIDUAL_SINGLE: 1500,
-  INDIVIDUAL_DOUBLE: 2800,
-  INSTITUTIONAL: 0, // billed per delegate at the desk
+  INDIVIDUAL_SINGLE: 1500,     // ₹1,500 per delegate
+  INDIVIDUAL_DOUBLE: 3000,     // ₹1,500 × 2 delegates
+  INSTITUTIONAL: 0,            // billed per delegate at the desk
 } as const;
 
 export const CURRENCY = 'INR';
