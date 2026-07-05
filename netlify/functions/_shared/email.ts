@@ -105,8 +105,8 @@ function buildHtml(data: RegistrationEmailData): string {
   const infoRows = [
     ['Application ID', `<strong style="color:#FFD000;letter-spacing:1px;">${esc(data.applicationId)}</strong>`],
     ['Registration Type', esc(data.registrationType)],
-    ...(data.committee ? [['Committee', esc(data.committee)]] : []),
-    ...(data.portfolio ? [['Portfolio', esc(data.portfolio)]] : []),
+    ...(data.committee ? [['Committee Preference', esc(data.committee)]] : []),
+    ...(data.portfolio ? [['Portfolio Preference', esc(data.portfolio)]] : []),
     ...(isDouble && data.delegate2Name ? [['Delegate 2', esc(data.delegate2Name)]] : []),
     ...(isInstitutional && data.institutionName ? [['Institution', esc(data.institutionName)]] : []),
     ...(isInstitutional && data.headName ? [['Head Delegate', esc(data.headName)]] : []),

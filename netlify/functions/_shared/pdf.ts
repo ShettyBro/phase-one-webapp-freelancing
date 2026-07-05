@@ -394,7 +394,7 @@ export async function buildRegistrationPdf(
 
   drawSectionHeading('Registration Details');
   drawRow('Registration Type', typeLabel);
-  if (reg.committee) drawRow('Committee', reg.committee);
+  if (reg.committee) drawRow('Committee Preference', reg.committee);
   if (reg.portfolio) drawRow('Portfolio Preference', reg.portfolio);
   drawRow('Submission Date',
     reg.submittedAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }));

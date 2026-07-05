@@ -147,7 +147,7 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
       {/* Committee + Portfolio */}
       <div className="glass gold-border rounded-md p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
         {isDouble ? (
-          <FormField as="select" label="Committee" name="committee" required value={DOUBLE_COMMITTEE} onChange={() => {}} options={[{ value: DOUBLE_COMMITTEE, label: 'DISEC (Double Delegation)' }]} />
+          <FormField as="select" label="Committee Preference" name="committee" required value={DOUBLE_COMMITTEE} onChange={() => {}} options={[{ value: DOUBLE_COMMITTEE, label: 'DISEC (Double Delegation)' }]} />
         ) : (
           <FormField
             as="select"
