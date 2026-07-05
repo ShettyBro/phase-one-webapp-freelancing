@@ -9,7 +9,7 @@ export const CONFERENCE = {
   startsAt: '2026-07-30T09:00:00',
   romanYear: 'MMXXVI',
   location: 'Cottons Campus',
-  edition: '1st Edition',
+  edition: '12th Edition',
 } as const;
 
 // ─── Navigation Links ─────────────────────────────────────────────────────

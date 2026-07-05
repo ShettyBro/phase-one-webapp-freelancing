@@ -122,7 +122,7 @@ const Footer: React.FC = () => {
                 Contact
               </h4>
               <p className="font-sans text-sm text-comun-muted">
-                comun2026@cottons.edu
+                cottonsmun2026@gmail.com
               </p>
             </div>
           </motion.div>

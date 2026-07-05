@@ -60,7 +60,7 @@ const AboutSection: React.FC = () => (
             <span className="text-gold-gradient">Diplomacy</span>
           </>
         }
-        subtitle="CoMUN 2026 — Cottons Model United Nations — is the inaugural edition of a premier diplomatic simulation conference. Held at Cottons Campus, CoMUN brings together the next generation of global leaders to debate, negotiate, and craft resolutions that mirror real-world United Nations proceedings."
+        subtitle="CoMUN 2026 — Cottons Model United Nations — is the 12th edition of a premier diplomatic simulation conference. Held at Cottons Campus, CoMUN brings together the next generation of global leaders to debate, negotiate, and craft resolutions that mirror real-world United Nations proceedings."
       />
 
       {/* Body Content */}

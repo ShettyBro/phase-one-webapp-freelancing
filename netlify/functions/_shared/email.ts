@@ -62,7 +62,7 @@ function siteUrl(): string {
  * working scripts/test-email.mjs. Never throws to the caller's flow.
  */
 async function sendWithFallback(to: string, subject: string, html: string): Promise<void> {
-  const primaryFrom = process.env.EMAIL_FROM || 'CoMUN 2026 <noreply@cottons.edu>';
+  const primaryFrom = process.env.EMAIL_FROM || 'CoMUN 2026 <cottonsmun2026@gmail.com>';
   try {
     await getTransporter().sendMail({ from: primaryFrom, to, subject, html });
   } catch (err) {
