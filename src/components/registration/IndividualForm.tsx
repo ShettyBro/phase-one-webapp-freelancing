@@ -244,6 +244,10 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
 
       {error && <p className="form-error text-center">{error}</p>}
 
+      <p className="font-sans text-xs text-comun-muted text-center">
+        ⚠️ <strong className="text-comun-white/70">No refunds</strong> will be issued once registration is submitted and confirmed.
+      </p>
+
       <button type="submit" disabled={submitting} className="btn-primary text-sm px-8 py-3.5 inline-flex items-center justify-center gap-2 self-center min-w-[220px]">
         {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
         {submitting ? 'Submitting…' : 'Submit Registration'}

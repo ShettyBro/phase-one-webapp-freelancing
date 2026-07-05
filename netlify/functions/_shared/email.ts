@@ -195,7 +195,8 @@ function buildHtml(data: RegistrationEmailData): string {
                   <p style="margin:0;font-size:13px;color:#cfcfcf;line-height:1.75;">
                     📋 <strong style="color:#F5F0E8;">Next Steps</strong><br/>
                     Download and print your registration PDF. Bring it along with a valid ID on
-                    conference day. The applicable fee is payable at the Registration Desk.
+                    conference day. The applicable fee is payable at the Registration Desk.<br/>
+                    <span style="color:#e08080;font-size:12px;">⚠️ <strong>No refunds</strong> will be issued once registration is submitted and confirmed.</span>
                   </p>
                 </td>
               </tr>

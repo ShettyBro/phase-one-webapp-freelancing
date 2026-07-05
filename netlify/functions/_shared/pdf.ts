@@ -443,6 +443,7 @@ export async function buildRegistrationPdf(
   drawBullet('Carry a valid student ID or government-issued photo ID matching the details above.');
   drawBullet('Portfolio allocations are subject to Secretariat confirmation; no changes after closing date.');
   drawBullet('Fees are payable in cash at the desk. This pass does not confirm payment.');
+  drawBullet('No refunds will be issued once registration is submitted and confirmed.');
   drawBullet('Dress code: Business Formal, Western Formal, or Traditional Attire as per CoMUN guidelines.');
 
   curY -= 12;

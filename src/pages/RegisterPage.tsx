@@ -522,7 +522,7 @@ const RegisterPage: React.FC = () => {
                     </svg>
                   </div>
                   <span className="font-sans text-sm text-comun-muted group-hover:text-comun-white transition-colors">
-                    I have read and acknowledge the registration steps, payment guidelines, and bank details.
+                    I have read and acknowledge the registration steps, payment guidelines, and bank details, and understand that no refunds will be issued once registration is confirmed.
                   </span>
                 </label>
               </div>
