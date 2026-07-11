@@ -1,46 +1,63 @@
-import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
+import React, { createContext, useContext, useCallback, useState } from 'react';
 import api from '../utils/api';
 import { RegistrationClosedDialog } from '../components/ui/RegistrationClosedDialog';
 
 interface RegistrationContextValue {
-  /** Whether registrations are currently open (fail-safe default: true). */
+  /** Whether registrations are currently open (optimistic default: true). */
   isOpen: boolean;
-  /** True until the status has been fetched at least once. */
+  /** True while fetching the status from the backend. */
   loading: boolean;
-  /** Re-fetch the registration status from the backend. */
+  /**
+   * Fetch the registration status on demand (called only when the user
+   * actually tries to register — NOT on every page load).
+   */
   refresh: () => Promise<void>;
-  /** Runs `action` if registrations are open; otherwise shows the closed dialog. */
+  /**
+   * Call this when the user clicks a Register button.
+   * Fetches the latest status, then either runs `action` (if open)
+   * or shows the "Registrations Closed" dialog.
+   */
   requireOpen: (action: () => void) => void;
 }
 
 const RegistrationContext = createContext<RegistrationContextValue | undefined>(undefined);
 
 export const RegistrationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(true); // fail-safe: assume open until told otherwise
-  const [loading, setLoading] = useState(true);
+  // Optimistic defaults — no API call until user clicks Register.
+  const [isOpen, setIsOpen] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const refresh = useCallback(async () => {
+    setLoading(true);
     try {
       const { data } = await api.get('/settings');
       if (typeof data?.registrationOpen === 'boolean') setIsOpen(data.registrationOpen);
     } catch {
-      // Network/backend unavailable — keep the current (open) state.
+      // Network / backend unavailable — keep the current (open) state.
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
   const requireOpen = useCallback(
     (action: () => void) => {
-      if (isOpen) action();
-      else setDialogOpen(true);
+      // Fetch latest status first, then decide.
+      setLoading(true);
+      api.get('/settings')
+        .then(({ data }) => {
+          const open = typeof data?.registrationOpen === 'boolean' ? data.registrationOpen : true;
+          setIsOpen(open);
+          if (open) action();
+          else setDialogOpen(true);
+        })
+        .catch(() => {
+          // On network error, assume open and let the backend reject if needed.
+          action();
+        })
+        .finally(() => setLoading(false));
     },
-    [isOpen],
+    [],
   );
 
   return (

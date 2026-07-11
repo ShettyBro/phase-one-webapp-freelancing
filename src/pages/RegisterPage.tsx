@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, User, Building2, Users, UserRound, Lock, ChevronRight, Download, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, User, Building2, Users, UserRound, ChevronRight, Download, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { IndividualForm } from '../components/registration/IndividualForm';
 import { InstitutionalForm } from '../components/registration/InstitutionalForm';
 import { RegistrationSuccess } from '../components/registration/RegistrationSuccess';
@@ -153,7 +153,7 @@ const RegisterPage: React.FC = () => {
     url: '/register',
   });
 
-  const { isOpen } = useRegistration();
+  const { requireOpen, loading: regChecking } = useRegistration();
   const [searchParams] = useSearchParams();
 
   // If a ?flow= param was passed from the homepage, jump directly to that flow
@@ -201,7 +201,7 @@ const RegisterPage: React.FC = () => {
     setDuplicateId(null);
   }, [step]);
 
-  const showStepBar = isOpen && !duplicateId && step !== 'success';
+  const showStepBar = !duplicateId && step !== 'success';
 
   return (
     <main className="relative min-h-screen overflow-hidden">
@@ -304,26 +304,7 @@ const RegisterPage: React.FC = () => {
         {/* ── Content Panels ── */}
         <AnimatePresence mode="wait">
 
-          {/* Registrations Closed */}
-          {!isOpen ? (
-            <motion.div
-              key="closed"
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="glass-navy gold-border rounded-md max-w-lg mx-auto p-10 text-center"
-            >
-              <div className="mx-auto mb-5 w-16 h-16 flex items-center justify-center rounded-full border border-comun-gold/30 bg-comun-gold/5">
-                <Lock className="w-7 h-7 text-comun-gold" />
-              </div>
-              <h2 className="font-serif-display text-2xl font-semibold text-gold-gradient mb-3">Registrations Closed</h2>
-              <p className="font-sans text-sm text-comun-muted mb-8">
-                Registrations for CoMUN 2026 are currently closed. Please check back soon or follow our official channels for updates.
-              </p>
-              <Link to="/" className="btn-primary text-sm px-8 py-3">Back to Home</Link>
-            </motion.div>
-
-          ) : duplicateId ? (
+          {duplicateId ? (
             <motion.div key="duplicate" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <DuplicateNotice applicationId={duplicateId} onDismiss={() => setDuplicateId(null)} />
             </motion.div>
@@ -341,22 +322,29 @@ const RegisterPage: React.FC = () => {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.45 }}
             >
+              {regChecking ? (
+                <div className="flex flex-col items-center justify-center gap-4 py-16">
+                  <Loader2 className="w-8 h-8 text-comun-gold animate-spin" />
+                  <p className="font-sans text-sm text-comun-muted">Checking registration status…</p>
+                </div>
+              ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <ChoiceCard
                   index={0}
                   icon={<User className="w-6 h-6" />}
                   title="Individual Registration"
                   description="Register on your own as a delegate — choose single or double delegation in your preferred committee."
-                  onClick={() => { setFlowType('individual'); setStep('delegation'); }}
+                  onClick={() => requireOpen(() => { setFlowType('individual'); setStep('delegation'); })}
                 />
                 <ChoiceCard
                   index={1}
                   icon={<Building2 className="w-6 h-6" />}
                   title="Institutional Registration"
                   description="Register a school or college delegation of multiple delegates under a faculty advisor."
-                  onClick={() => { setFlowType('institutional'); setStep('inst-template'); }}
+                  onClick={() => requireOpen(() => { setFlowType('institutional'); setStep('inst-template'); })}
                 />
               </div>
+              )}
 
               {/* Info strip */}
               <motion.div

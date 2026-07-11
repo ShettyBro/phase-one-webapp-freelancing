@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Search, Eye, Trash2, X, FileDown, Download, FileSpreadsheet,
   Archive, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Loader2,
+  ExternalLink, RefreshCw, CreditCard,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../utils/api';
@@ -10,6 +11,7 @@ import { AdminPageHeader, AdminCard, Spinner, EmptyState, ConfirmDialog } from '
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 const PAGE_SIZE = 25;
+const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1eceE9eN8-NHwJDAkb5imiWjLNspdUNvRHTCtmQH5OIA/edit';
 
 // Cross-browser blob download: the anchor MUST be in the DOM for .click() to
 // work in Firefox/Safari, and the object URL is revoked on a delay so the
@@ -68,6 +70,7 @@ const AdminRegistrations: React.FC = () => {
   const [exportBusy, setExportBusy] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState(false);
+  const [syncingSheets, setSyncingSheets] = useState(false);
   // B4 — keep a ref to the latest AbortController so stale requests are cancelled.
   const abortRef = React.useRef<AbortController | null>(null);
 
@@ -153,13 +156,35 @@ const AdminRegistrations: React.FC = () => {
     finally { setExportBusy(null); }
   };
 
+  // ── Sync to Google Sheets ──────────────────────────────────────────────
+  const syncToSheets = async () => {
+    setSyncingSheets(true);
+    try {
+      await api.post('/admin-sync-sheets');
+      alert('Google Sheets updated successfully!');
+    } catch {
+      // Fallback: open sync instructions if endpoint not yet available
+      window.open(SHEETS_URL, '_blank');
+    } finally {
+      setSyncingSheets(false);
+    }
+  };
+
   return (
     <div>
       <AdminPageHeader
         title="Registrations"
         subtitle={`${all.length} total record${all.length !== 1 ? 's' : ''}`}
-        actions={
+      actions={
           <div className="flex flex-wrap gap-2">
+            {/* Google Sheets buttons */}
+            <a href={SHEETS_URL} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm font-sans text-xs font-semibold border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-colors">
+              <ExternalLink className="w-3.5 h-3.5" /> View Sheet
+            </a>
+            <ExportBtn label={syncingSheets ? 'Syncing…' : 'Sync Sheet'} busy={syncingSheets}
+              icon={<RefreshCw className="w-3.5 h-3.5" />}
+              onClick={syncToSheets} />
             <ExportBtn label="Single XLSX" busy={exportBusy === 'individual-single'} icon={<FileSpreadsheet className="w-3.5 h-3.5" />}
               onClick={() => doExport('individual-single', 'Individual_Single_Delegates.xlsx')} />
             <ExportBtn label="Double XLSX" busy={exportBusy === 'individual-double'} icon={<FileSpreadsheet className="w-3.5 h-3.5" />}
@@ -390,12 +415,26 @@ const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete?: () =
         </div>
       ))}
 
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {Array.isArray(detail.files) && detail.files.length > 0 && (
+      {/* Payment Proof — prominent view button */}
+      {Array.isArray(detail.files) && detail.files.filter((f: any) => f.kind === 'PAYMENT_PROOF').length > 0 && (
+        <div className="mt-4">
+          <p className="font-sans text-xs text-comun-gold/70 uppercase tracking-widest mb-2">Payment Proof</p>
+          {detail.files.filter((f: any) => f.kind === 'PAYMENT_PROOF').map((f: any) => (
+            <a key={f.id} href={f.downloadUrl || '#'} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2.5 mt-1 rounded-sm border border-comun-gold/25 bg-comun-gold/5 hover:bg-comun-gold/10 transition-colors">
+              <CreditCard className="w-4 h-4 text-comun-gold flex-shrink-0" />
+              <span className="font-sans text-sm text-comun-gold flex-1 truncate">{f.fileName}</span>
+              <ExternalLink className="w-3.5 h-3.5 text-comun-gold/60 flex-shrink-0" />
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* Other uploaded files (ID proofs, spreadsheets) */}
+      {Array.isArray(detail.files) && detail.files.filter((f: any) => f.kind !== 'PAYMENT_PROOF').length > 0 && (
         <div className="mt-4">
           <p className="font-sans text-xs text-comun-gold/70 uppercase tracking-widest mb-2">Uploaded Files</p>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {detail.files.map((f: any) => (
+          {detail.files.filter((f: any) => f.kind !== 'PAYMENT_PROOF').map((f: any) => (
             <a key={f.id} href={f.downloadUrl || '#'} target="_blank" rel="noopener noreferrer"
               className={`flex items-center gap-2 py-2 font-sans text-sm ${f.downloadUrl ? 'text-comun-gold hover:text-comun-gold-light' : 'text-comun-muted pointer-events-none'}`}>
               <FileDown className="w-4 h-4" /> {f.fileName}
