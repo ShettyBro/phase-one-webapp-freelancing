@@ -14,7 +14,7 @@
  *   "Institutional Registrations" — one row per institution
  */
 
-import { google } from 'googleapis';
+import { JWT } from 'google-auth-library';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,47 +69,56 @@ function isConfigured(): boolean {
   return !!(process.env.GOOGLE_SHEETS_ID && process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
 }
 
-function buildAuth() {
+let cachedClient: JWT | null = null;
+async function getClient(): Promise<JWT> {
+  if (cachedClient) return cachedClient;
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON!;
   const creds = JSON.parse(raw);
-  return new google.auth.GoogleAuth({
-    credentials: creds,
+  const client = new JWT({
+    email: creds.client_email,
+    key: creds.private_key,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
+  cachedClient = client;
+  return client;
+}
+
+async function requestSheetsApi(client: JWT, method: string, path: string, body?: any) {
+  const token = await client.getAccessToken();
+  const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEETS_ID}${path}`, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${token.token}`,
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Sheets API Error: ${res.status} ${res.statusText} - ${errorText}`);
+  }
+  return res.json();
 }
 
 /**
- * Ensures a sheet (tab) with the given title exists; returns the sheetId.
+ * Ensures a sheet (tab) with the given title exists.
  * If it doesn't exist it creates it with a header row.
  */
-async function ensureSheet(
-  sheets: ReturnType<typeof google.sheets>,
-  spreadsheetId: string,
-  title: string,
-  headers: string[],
-): Promise<number> {
-  const meta = await sheets.spreadsheets.get({ spreadsheetId });
-  const existing = meta.data.sheets?.find((s) => s.properties?.title === title);
-  if (existing) return existing.properties!.sheetId!;
+async function ensureSheet(client: JWT, title: string, headers: string[]): Promise<void> {
+  // Get spreadsheet metadata
+  const meta = await requestSheetsApi(client, 'GET', '');
+  const existing = meta.sheets?.find((s: any) => s.properties?.title === title);
+  if (existing) return;
 
   // Create the sheet tab
-  const res = await sheets.spreadsheets.batchUpdate({
-    spreadsheetId,
-    requestBody: {
-      requests: [{ addSheet: { properties: { title } } }],
-    },
+  await requestSheetsApi(client, 'POST', ':batchUpdate', {
+    requests: [{ addSheet: { properties: { title } } }],
   });
-  const newSheetId = res.data.replies?.[0]?.addSheet?.properties?.sheetId ?? 0;
 
   // Write header row
-  await sheets.spreadsheets.values.append({
-    spreadsheetId,
-    range: `${title}!A1`,
-    valueInputOption: 'RAW',
-    requestBody: { values: [headers] },
+  await requestSheetsApi(client, 'POST', `/values/${encodeURIComponent(title)}!A1:append?valueInputOption=RAW`, {
+    values: [headers],
   });
-
-  return newSheetId;
 }
 
 // ─── Individual Registrations ─────────────────────────────────────────────────
@@ -129,12 +138,10 @@ export async function appendIndividualRow(row: IndividualSheetRow): Promise<void
     return;
   }
   try {
-    const auth = buildAuth();
-    const sheets = google.sheets({ version: 'v4', auth });
-    const spreadsheetId = process.env.GOOGLE_SHEETS_ID!;
+    const client = await getClient();
     const TAB = 'Individual Registrations';
 
-    await ensureSheet(sheets, spreadsheetId, TAB, INDIVIDUAL_HEADERS);
+    await ensureSheet(client, TAB, INDIVIDUAL_HEADERS);
 
     const values = [[
       row.applicationId,
@@ -154,12 +161,8 @@ export async function appendIndividualRow(row: IndividualSheetRow): Promise<void
       row.d2Nationality ?? '', row.d2Experience ?? '', row.d2Institution ?? '',
     ]];
 
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: `${TAB}!A1`,
-      valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: { values },
+    await requestSheetsApi(client, 'POST', `/values/${encodeURIComponent(TAB)}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+      values
     });
     console.log('[Sheets] Individual row appended:', row.applicationId);
   } catch (err) {
@@ -184,12 +187,10 @@ export async function appendInstitutionalRow(row: InstitutionalSheetRow): Promis
     return;
   }
   try {
-    const auth = buildAuth();
-    const sheets = google.sheets({ version: 'v4', auth });
-    const spreadsheetId = process.env.GOOGLE_SHEETS_ID!;
+    const client = await getClient();
     const TAB = 'Institutional Registrations';
 
-    await ensureSheet(sheets, spreadsheetId, TAB, INSTITUTIONAL_HEADERS);
+    await ensureSheet(client, TAB, INSTITUTIONAL_HEADERS);
 
     const values = [[
       row.applicationId,
@@ -204,12 +205,8 @@ export async function appendInstitutionalRow(row: InstitutionalSheetRow): Promis
       row.spreadsheetFileName,
     ]];
 
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: `${TAB}!A1`,
-      valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: { values },
+    await requestSheetsApi(client, 'POST', `/values/${encodeURIComponent(TAB)}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+      values
     });
     console.log('[Sheets] Institutional row appended:', row.applicationId);
   } catch (err) {
