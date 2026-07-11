@@ -1,11 +1,12 @@
 import type { Handler } from '@netlify/functions';
 import { prisma } from './_shared/prisma';
-import { ok, fail, preflight, parseBody, clientInfo , setEvent } from './_shared/http';
+import { ok, fail, preflight, parseBody, clientInfo, setEvent } from './_shared/http';
 import { generateUniqueApplicationId } from './_shared/applicationId';
 import { sendRegistrationConfirmation } from './_shared/email';
 import { validateDelegate, validateFileRef, type DelegateInput, type FileRef } from './_shared/validation';
 import { COMMITTEE_CODES, DOUBLE_DELEGATION_COMMITTEE, FEES } from './_shared/domain';
 import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
+import { appendIndividualRow } from './_shared/googleSheets';
 
 interface IndividualPayload {
   delegationType?: 'SINGLE' | 'DOUBLE';
@@ -15,6 +16,7 @@ interface IndividualPayload {
   idProofs?: FileRef[];
   paymentMethod?: 'ONLINE' | 'OFFLINE';
   paymentReference?: string;
+  paymentProof?: FileRef; // NEFT screenshot — required when paymentMethod === 'ONLINE'
 }
 
 async function findDuplicate(emails: string[], phones: string[]) {
@@ -29,13 +31,18 @@ async function findDuplicate(emails: string[], phones: string[]) {
  * POST /api/register-individual
  * Single or Double (DISEC-only) delegation. Files must already be uploaded to
  * R2 (via /api/uploads-sign); their keys are passed in `idProofs`.
+ *
+ * Changes:
+ *  - DISEC is now EXCLUDED from Single delegation (only allowed for Double).
+ *  - paymentProof (FileRef) is required when paymentMethod === 'ONLINE'.
+ *  - On success, appends a row to the Google Sheet (best-effort).
  */
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight(event);
   setEvent(event);
   if (event.httpMethod !== 'POST') return fail(405, 'Method not allowed.');
 
-  // Fix #4 — rate-limit registration: 5 per IP per hour.
+  // Rate-limit registration: 5 per IP per hour.
   const { ip } = clientInfo(event);
   if (!checkRateLimit(`register-individual:${ip}`, 5, 60 * 60 * 1000)) {
     return RATE_LIMIT_RESPONSE;
@@ -57,6 +64,10 @@ export const handler: Handler = async (event) => {
     if (!body.committee || !COMMITTEE_CODES.includes(body.committee as never)) {
       return fail(400, 'A valid committee is required.');
     }
+    // DISEC is only for Double Delegation — reject single attempts.
+    if (!isDouble && body.committee === DOUBLE_DELEGATION_COMMITTEE) {
+      return fail(400, `${DOUBLE_DELEGATION_COMMITTEE} is only available for Double Delegation.`);
+    }
     if (isDouble && body.committee !== DOUBLE_DELEGATION_COMMITTEE) {
       return fail(400, `Double Delegation is only available for ${DOUBLE_DELEGATION_COMMITTEE}.`);
     }
@@ -66,8 +77,12 @@ export const handler: Handler = async (event) => {
     if (body.paymentMethod !== 'ONLINE' && body.paymentMethod !== 'OFFLINE') {
       return fail(400, 'Invalid payment method.');
     }
-    if (body.paymentMethod === 'ONLINE' && (!body.paymentReference || !body.paymentReference.trim())) {
-      return fail(400, 'A transaction reference number is required for online payments.');
+    if (body.paymentMethod === 'ONLINE') {
+      if (!body.paymentReference || !body.paymentReference.trim()) {
+        return fail(400, 'A transaction reference number is required for online payments.');
+      }
+      const proofErr = validateFileRef(body.paymentProof, 'Payment proof screenshot');
+      if (proofErr) return fail(400, proofErr);
     }
 
     const delegates = body.delegates ?? [];
@@ -83,13 +98,10 @@ export const handler: Handler = async (event) => {
       if (fErr) return fail(400, fErr);
     }
 
-    // ── Duplicate prevention (email / phone) ──
+    // Duplicate prevention (email / phone).
     const emails = delegates.map((d) => d.email!.trim().toLowerCase());
     const phones = delegates.map((d) => d.phone!.trim());
 
-    // Fix B7 — for double delegation, the two delegates must be distinct people.
-    // Catch it here with a clear message instead of hitting the DB unique
-    // constraint and returning the generic "already exists" error.
     if (isDouble) {
       if (emails[0] === emails[1]) return fail(400, 'Delegate 1 and Delegate 2 must use different email addresses.');
       if (phones[0] === phones[1]) return fail(400, 'Delegate 1 and Delegate 2 must use different phone numbers.');
@@ -105,6 +117,33 @@ export const handler: Handler = async (event) => {
 
     const applicationId = await generateUniqueApplicationId();
     const amountPayable = isDouble ? FEES.INDIVIDUAL_DOUBLE : FEES.INDIVIDUAL_SINGLE;
+
+    // Build file records: ID proofs + optional payment proof.
+    const fileCreates: {
+      kind: 'ID_PROOF' | 'PAYMENT_PROOF';
+      r2Key: string;
+      fileName: string;
+      mimeType: string;
+      size: number;
+    }[] = [
+      ...idProofs.map((f) => ({
+        kind: 'ID_PROOF' as const,
+        r2Key: f.key!,
+        fileName: f.fileName!,
+        mimeType: f.mimeType || 'application/octet-stream',
+        size: f.size || 0,
+      })),
+    ];
+
+    if (body.paymentMethod === 'ONLINE' && body.paymentProof) {
+      fileCreates.push({
+        kind: 'PAYMENT_PROOF' as const,
+        r2Key: body.paymentProof.key!,
+        fileName: body.paymentProof.fileName!,
+        mimeType: body.paymentProof.mimeType || 'application/octet-stream',
+        size: body.paymentProof.size || 0,
+      });
+    }
 
     const created = await prisma.registration.create({
       data: {
@@ -128,20 +167,12 @@ export const handler: Handler = async (event) => {
             institution: d.institution?.trim() || null,
           })),
         },
-        files: {
-          create: idProofs.map((f) => ({
-            kind: 'ID_PROOF' as const,
-            r2Key: f.key!,
-            fileName: f.fileName!,
-            mimeType: f.mimeType || 'application/octet-stream',
-            size: f.size || 0,
-          })),
-        },
+        files: { create: fileCreates },
       },
-      select: { applicationId: true },
+      select: { applicationId: true, submittedAt: true },
     });
 
-    // Confirmation email to the primary delegate (best-effort).
+    // Confirmation emails — best-effort.
     const d2 = isDouble ? delegates[1] : null;
     await sendRegistrationConfirmation(emails[0], {
       applicationId: created.applicationId,
@@ -154,7 +185,6 @@ export const handler: Handler = async (event) => {
       amountPayable,
     }).catch((e) => console.error('email failed:', e));
 
-    // For double delegation also notify the second delegate.
     if (isDouble && d2 && emails[1] && emails[1] !== emails[0]) {
       await sendRegistrationConfirmation(emails[1], {
         applicationId: created.applicationId,
@@ -168,6 +198,35 @@ export const handler: Handler = async (event) => {
       }).catch((e) => console.error('email failed (delegate 2):', e));
     }
 
+    // Google Sheets — best-effort, never blocks response.
+    appendIndividualRow({
+      applicationId: created.applicationId,
+      submittedAt: created.submittedAt.toISOString(),
+      delegationType: body.delegationType,
+      committee: body.committee,
+      portfolio: body.portfolio.trim(),
+      paymentMethod: body.paymentMethod,
+      paymentReference: body.paymentMethod === 'ONLINE' ? (body.paymentReference?.trim() ?? '') : '',
+      hasPaymentProof: !!(body.paymentMethod === 'ONLINE' && body.paymentProof),
+      amountPayable,
+      d1Name: delegates[0].name!.trim(),
+      d1Email: emails[0],
+      d1Phone: phones[0],
+      d1Grade: delegates[0].grade!,
+      d1Nationality: delegates[0].nationality!.trim(),
+      d1Experience: delegates[0].experience!.trim(),
+      d1Institution: delegates[0].institution?.trim() ?? '',
+      ...(isDouble && d2 ? {
+        d2Name: d2.name!.trim(),
+        d2Email: emails[1],
+        d2Phone: phones[1],
+        d2Grade: d2.grade!,
+        d2Nationality: d2.nationality!.trim(),
+        d2Experience: d2.experience!.trim(),
+        d2Institution: d2.institution?.trim() ?? '',
+      } : {}),
+    }).catch(() => { /* already logged inside */ });
+
     return ok({
       applicationId: created.applicationId,
       registrationType: 'INDIVIDUAL',
@@ -176,13 +235,9 @@ export const handler: Handler = async (event) => {
       amountPayable,
     });
   } catch (err: unknown) {
-    // Unique-constraint fallback (race on delegate email/phone).
     if (typeof err === 'object' && err && (err as { code?: string }).code === 'P2002') {
-      // Best-effort: try to find the conflicting registration's application ID.
       const existingFallback = await prisma.delegate.findFirst({
-        where: { OR: [
-          { email: { in: [] } }, // race means we don't have emails here; just signal duplicate
-        ]},
+        where: { OR: [{ email: { in: [] } }] },
         include: { registration: { select: { applicationId: true } } },
       }).catch(() => null);
       return fail(409, 'A registration already exists for this email or phone number. Please contact the organizers.', {

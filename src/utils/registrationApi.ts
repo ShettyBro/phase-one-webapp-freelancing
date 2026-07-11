@@ -44,6 +44,7 @@ export async function submitIndividual(payload: {
   idProofs: UploadedRef[];
   paymentMethod: 'ONLINE' | 'OFFLINE';
   paymentReference?: string;
+  paymentProof?: UploadedRef; // required when paymentMethod === 'ONLINE'
 }): Promise<RegistrationResult> {
   const { data } = await api.post('/register-individual', payload);
   return data;
@@ -54,6 +55,9 @@ export async function submitInstitutional(payload: {
   teacher: ContactForm;
   head: ContactForm;
   spreadsheet: UploadedRef;
+  paymentMethod: 'ONLINE' | 'OFFLINE';
+  paymentReference?: string;
+  paymentProof?: UploadedRef; // required when paymentMethod === 'ONLINE'
 }): Promise<RegistrationResult> {
   const { data } = await api.post('/register-institutional', payload);
   return data;

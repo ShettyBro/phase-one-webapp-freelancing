@@ -16,6 +16,9 @@ export type CommitteeCode = (typeof COMMITTEE_CODES)[number];
 /** Double Delegation is only allowed for DISEC. */
 export const DOUBLE_DELEGATION_COMMITTEE: CommitteeCode = 'DISEC';
 
+/** DISEC is ONLY available for Double Delegation — exclude it from Single. */
+export const DISEC_EXCLUDED_FROM_SINGLE = true;
+
 // ── Upload constraints ──
 export const ID_PROOF = {
   maxBytes: 4 * 1024 * 1024, // 4 MB
@@ -35,6 +38,14 @@ export const SPREADSHEET = {
 
 export const RESOURCE_FILE = {
   maxBytes: 25 * 1024 * 1024, // 25 MB (admin-uploaded public docs)
+};
+
+export const PAYMENT_PROOF = {
+  maxBytes: 4 * 1024 * 1024, // 4 MB
+  mimeTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
+  extensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+  /** R2 folder — must match the folder the client created in the bucket */
+  r2Prefix: 'payment proofs',
 };
 
 // ── Fees ──

@@ -1,10 +1,10 @@
 import type { Handler } from '@netlify/functions';
 import { ok, fail, preflight, parseBody, clientInfo , setEvent } from './_shared/http';
 import { r2Configured, buildKey, presignUpload } from './_shared/r2';
-import { ID_PROOF, SPREADSHEET } from './_shared/domain';
+import { ID_PROOF, SPREADSHEET, PAYMENT_PROOF } from './_shared/domain';
 import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
 
-type UploadKind = 'ID_PROOF' | 'SPREADSHEET';
+type UploadKind = 'ID_PROOF' | 'SPREADSHEET' | 'PAYMENT_PROOF';
 
 interface SignRequest {
   kind?: UploadKind;
@@ -14,8 +14,9 @@ interface SignRequest {
 }
 
 const RULES: Record<UploadKind, { prefix: string; mimeTypes: string[]; maxBytes: number }> = {
-  ID_PROOF:    { prefix: 'individual/ids',          mimeTypes: ID_PROOF.mimeTypes,    maxBytes: ID_PROOF.maxBytes },
-  SPREADSHEET: { prefix: 'institution/spreadsheets', mimeTypes: SPREADSHEET.mimeTypes, maxBytes: SPREADSHEET.maxBytes },
+  ID_PROOF:      { prefix: 'individual/ids',          mimeTypes: ID_PROOF.mimeTypes,      maxBytes: ID_PROOF.maxBytes },
+  SPREADSHEET:   { prefix: 'institution/spreadsheets', mimeTypes: SPREADSHEET.mimeTypes,   maxBytes: SPREADSHEET.maxBytes },
+  PAYMENT_PROOF: { prefix: PAYMENT_PROOF.r2Prefix,     mimeTypes: PAYMENT_PROOF.mimeTypes, maxBytes: PAYMENT_PROOF.maxBytes },
 };
 
 /**

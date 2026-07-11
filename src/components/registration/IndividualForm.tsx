@@ -16,6 +16,12 @@ import {
 const DOUBLE_COMMITTEE = 'DISEC';
 const GRADES = ['6', '7', '8', '9', '10', '11', '12'];
 
+/**
+ * DISEC is Double-Delegation only — exclude it from the Single Delegation list.
+ * The backend also enforces this; the frontend simply keeps the UI clean.
+ */
+const SINGLE_COMMITTEES = COMMITTEES.filter((c) => c.code !== DOUBLE_COMMITTEE);
+
 const emptyDelegate = (): DelegateForm => ({
   name: '', email: '', phone: '', grade: '', nationality: '', experience: '', institution: '',
 });
@@ -38,6 +44,7 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
   const [portfolio, setPortfolio] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'OFFLINE'>('ONLINE');
   const [paymentReference, setPaymentReference] = useState('');
+  const [paymentProof, setPaymentProof] = useState<UploadedRef | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,8 +69,13 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
       if (!d.experience.trim()) return `${label}: experience is required.`;
       if (!idProofs[i]) return `${label}: please upload an ID proof.`;
     }
-    if (paymentMethod === 'ONLINE' && !paymentReference.trim()) {
-      return 'Please enter the Transaction Reference Number (UTR) for your online payment.';
+    if (paymentMethod === 'ONLINE') {
+      if (!paymentReference.trim()) {
+        return 'Please enter the Transaction Reference Number (UTR) for your online payment.';
+      }
+      if (!paymentProof) {
+        return 'Please upload a screenshot of your payment transfer.';
+      }
     }
     return null;
   };
@@ -86,6 +98,7 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
         idProofs: idProofs as UploadedRef[],
         paymentMethod,
         paymentReference: paymentMethod === 'ONLINE' ? paymentReference.trim() : undefined,
+        paymentProof: paymentMethod === 'ONLINE' ? (paymentProof ?? undefined) : undefined,
       });
       onSuccess(result, delegates[0].phone.trim());
     } catch (err) {
@@ -93,7 +106,6 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
       if (apiErr.duplicate && apiErr.applicationId) {
         onDuplicate(apiErr.applicationId);
       } else if (apiErr.duplicate) {
-        // Duplicate confirmed but no ID returned (race condition). Show inline message.
         setError('A registration already exists with your email or phone number. Please contact the organizers.');
       } else {
         setError(apiErr.message);
@@ -157,8 +169,7 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
             value={committee}
             onChange={setCommittee}
             placeholder="Select a committee"
-            options={COMMITTEES
-              .map((c) => ({ value: c.code, label: `${c.name} — ${c.fullName}` }))}
+            options={SINGLE_COMMITTEES.map((c) => ({ value: c.code, label: `${c.name} — ${c.fullName}` }))}
           />
         )}
         <FormField label="Portfolio Preference" name="portfolio" required value={portfolio} onChange={setPortfolio} placeholder="e.g. country / role" />
@@ -176,7 +187,8 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
             )}
           </p>
         </div>
-        
+
+        {/* Method toggle */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
             type="button"
@@ -193,9 +205,9 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
                 {paymentMethod === 'ONLINE' && <div className="w-2 h-2 rounded-full bg-comun-gold" />}
               </div>
             </div>
-            <p className="font-sans text-xs text-comun-muted">Pay now via bank transfer and enter your reference number.</p>
+            <p className="font-sans text-xs text-comun-muted">Pay via bank transfer — attach screenshot and enter UTR.</p>
           </button>
-          
+
           <button
             type="button"
             onClick={() => setPaymentMethod('OFFLINE')}
@@ -206,7 +218,7 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className={`font-sans font-semibold ${paymentMethod === 'OFFLINE' ? 'text-comun-gold' : 'text-comun-white'}`}>Offline</span>
+              <span className={`font-sans font-semibold ${paymentMethod === 'OFFLINE' ? 'text-comun-gold' : 'text-comun-white'}`}>At Desk (Offline)</span>
               <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'OFFLINE' ? 'border-comun-gold' : 'border-white/30'}`}>
                 {paymentMethod === 'OFFLINE' && <div className="w-2 h-2 rounded-full bg-comun-gold" />}
               </div>
@@ -215,14 +227,17 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
           </button>
         </div>
 
+        {/* ONLINE details panel */}
         {paymentMethod === 'ONLINE' && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="mt-2 p-5 border border-comun-gold/20 bg-comun-gold/5 rounded-md flex flex-col gap-4 overflow-hidden"
+            className="p-5 border border-comun-gold/20 bg-comun-gold/5 rounded-md flex flex-col gap-4 overflow-hidden"
           >
             <div>
-              <p className="font-sans text-sm text-comun-white mb-2">Please transfer the registration fee of <strong className="text-comun-gold">₹{isDouble ? '3,000' : '1,500'}</strong> to the following account:</p>
+              <p className="font-sans text-sm text-comun-white mb-2">
+                Transfer <strong className="text-comun-gold">₹{isDouble ? '3,000' : '1,500'}</strong> to:
+              </p>
               <div className="font-mono text-sm text-comun-gold/80 bg-black/20 p-3 rounded border border-white/5 space-y-1">
                 <p><strong>Name:</strong> BISHOP COTTON BOYS' SCHOOL</p>
                 <p><strong>A/C No:</strong> 410202050000024</p>
@@ -238,6 +253,26 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
               onChange={setPaymentReference}
               placeholder="e.g. UTR1234567890"
             />
+            <FileUpload
+              label="Payment Screenshot / Proof (PDF or Image)"
+              kind="PAYMENT_PROOF"
+              required
+              value={paymentProof}
+              onChange={setPaymentProof}
+            />
+          </motion.div>
+        )}
+
+        {/* OFFLINE info pill */}
+        {paymentMethod === 'OFFLINE' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="p-4 border border-white/10 bg-white/[0.02] rounded-md overflow-hidden"
+          >
+            <p className="font-sans text-sm text-comun-muted">
+              💳 You may pay at the <span className="text-comun-white">registration desk on Day 1</span> of the conference (30 July 2026). Please carry the exact amount in cash.
+            </p>
           </motion.div>
         )}
       </div>

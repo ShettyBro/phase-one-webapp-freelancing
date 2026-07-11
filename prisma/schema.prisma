@@ -40,6 +40,7 @@ enum PaymentMethod {
 
 enum FileKind {
   ID_PROOF      // delegate identity proof (individual)
+  PAYMENT_PROOF // NEFT transfer screenshot (individual + institutional)
   SPREADSHEET   // institutional delegate spreadsheet (csv/xlsx)
   RESOURCE      // public downloadable resource (admin CMS)
 }

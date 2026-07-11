@@ -7,7 +7,7 @@ export interface UploadedRef {
   size: number;
 }
 
-export type UploadKind = 'ID_PROOF' | 'SPREADSHEET';
+export type UploadKind = 'ID_PROOF' | 'SPREADSHEET' | 'PAYMENT_PROOF';
 
 export const UPLOAD_LIMITS: Record<UploadKind, { maxBytes: number; accept: string; label: string }> = {
   ID_PROOF: {
@@ -20,6 +20,11 @@ export const UPLOAD_LIMITS: Record<UploadKind, { maxBytes: number; accept: strin
     accept: '.csv,.xlsx,.xls',
     label: 'CSV or XLSX · max 8 MB',
   },
+  PAYMENT_PROOF: {
+    maxBytes: 4 * 1024 * 1024,
+    accept: '.pdf,.jpg,.jpeg,.png,.webp',
+    label: 'PDF, JPG, PNG or WEBP · max 4 MB',
+  },
 };
 
 const MIME_BY_KIND: Record<UploadKind, string[]> = {
@@ -29,6 +34,7 @@ const MIME_BY_KIND: Record<UploadKind, string[]> = {
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ],
+  PAYMENT_PROOF: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
 };
 
 /** Client-side validation mirroring the server rules. Returns error or null. */
