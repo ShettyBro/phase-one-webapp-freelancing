@@ -4,7 +4,7 @@ import { ok, fail, preflight, parseBody, clientInfo, setEvent } from './_shared/
 import { generateUniqueApplicationId } from './_shared/applicationId';
 import { sendRegistrationConfirmation } from './_shared/email';
 import { validateDelegate, validateFileRef, type DelegateInput, type FileRef } from './_shared/validation';
-import { COMMITTEE_CODES, DOUBLE_DELEGATION_COMMITTEE, FEES } from './_shared/domain';
+import { COMMITTEE_CODES, CLOSED_COMMITTEE_CODES, DOUBLE_DELEGATION_COMMITTEE, FEES, type CommitteeCode } from './_shared/domain';
 import { checkRateLimit, RATE_LIMIT_RESPONSE } from './_shared/rateLimit';
 import { appendIndividualRow } from './_shared/googleSheets';
 
@@ -63,6 +63,9 @@ export const handler: Handler = async (event) => {
     }
     if (!body.committee || !COMMITTEE_CODES.includes(body.committee as never)) {
       return fail(400, 'A valid committee is required.');
+    }
+    if (CLOSED_COMMITTEE_CODES.includes(body.committee as CommitteeCode)) {
+      return fail(400, `Registration for ${body.committee} is currently closed.`);
     }
     // DISEC is only for Double Delegation — reject single attempts.
     if (!isDouble && body.committee === DOUBLE_DELEGATION_COMMITTEE) {

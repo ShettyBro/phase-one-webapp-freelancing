@@ -112,8 +112,13 @@ const CommitteesSection: React.FC = () => {
               <div className="p-6 md:p-8">
                 <div className="flex justify-between items-start mb-6">
                   <div className="pr-8">
-                    <h3 className="font-serif-display text-3xl md:text-4xl text-comun-white mb-2">
+                    <h3 className="font-serif-display text-3xl md:text-4xl text-comun-white mb-2 flex items-center gap-3">
                       {selectedCommittee.name}
+                      {selectedCommittee.registrationClosed && (
+                        <span className="font-sans text-xs text-red-400 font-semibold tracking-wider uppercase border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 rounded-sm">
+                          Registration Closed
+                        </span>
+                      )}
                     </h3>
                     <p className="font-sans text-sm md:text-base text-comun-gold/80 uppercase tracking-widest">
                       {selectedCommittee.fullName}

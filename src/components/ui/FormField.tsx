@@ -28,7 +28,7 @@ interface SelectProps extends BaseProps {
   as: 'select';
   value: string;
   onChange: (value: string) => void;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; disabled?: boolean }[];
   placeholder?: string;
 }
 
@@ -69,7 +69,7 @@ export const FormField: React.FC<FormFieldProps> = (props) => {
             {props.placeholder ?? 'Select…'}
           </option>
           {props.options.map((o) => (
-            <option key={o.value} value={o.value}>
+            <option key={o.value} value={o.value} disabled={o.disabled}>
               {o.label}
             </option>
           ))}

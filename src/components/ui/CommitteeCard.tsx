@@ -64,12 +64,19 @@ export const CommitteeCard: React.FC<CommitteeCardProps> = ({ committee, index, 
         {/* Main content */}
         <div className="relative px-6 py-6 flex flex-col gap-3 h-full min-h-[148px]">
 
-          {/* Category pill */}
-          <div className="flex items-center gap-2">
-            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dot}`} />
-            <span className="font-sans text-[10px] text-comun-muted/90 tracking-[0.18em] uppercase">
-              {meta.label}
-            </span>
+          {/* Category pill & status */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dot}`} />
+              <span className="font-sans text-[10px] text-comun-muted/90 tracking-[0.18em] uppercase">
+                {meta.label}
+              </span>
+            </div>
+            {committee.registrationClosed && (
+              <span className="font-sans text-[9px] text-red-400 font-semibold tracking-wider uppercase border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded-xs">
+                Closed
+              </span>
+            )}
           </div>
 
           {/* Committee code — large serif */}

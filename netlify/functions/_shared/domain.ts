@@ -13,6 +13,13 @@ export const COMMITTEE_CODES = [
 
 export type CommitteeCode = (typeof COMMITTEE_CODES)[number];
 
+export const CLOSED_COMMITTEE_CODES: CommitteeCode[] = [
+  'DISEC',
+  'UNODC',
+  'SPECPOL',
+  'UNSC',
+];
+
 /** Double Delegation is only allowed for DISEC. */
 export const DOUBLE_DELEGATION_COMMITTEE: CommitteeCode = 'DISEC';
 

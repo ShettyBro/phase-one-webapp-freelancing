@@ -41,6 +41,7 @@ export interface Committee {
   format?: string;
   chairperson?: string;
   description?: string;
+  registrationClosed?: boolean;
 }
 
 export const COMMITTEES: Committee[] = [
@@ -54,6 +55,7 @@ export const COMMITTEES: Committee[] = [
     format: 'Double Delegation',
     chairperson: 'Ayush Prem',
     description: 'Focuses on global arms supply chains and their role in escalating Middle Eastern conflicts. Delegates analyze illicit arms transfers, maritime security threats, and international legal frameworks, proposing solutions such as sanctions, export controls, and verification regimes to reduce conflict escalation.',
+    registrationClosed: true,
   },
   {
     code:     'UNODC',
@@ -65,6 +67,7 @@ export const COMMITTEES: Committee[] = [
     format: 'Single Delegation',
     chairperson: 'Dhruv Kulkarni',
     description: 'Explores the global challenge of synthetic drugs and digital trafficking networks. Delegates work on strengthening international cooperation, improving legal frameworks, and balancing public health with law enforcement in a rapidly evolving digital landscape.',
+    registrationClosed: true,
   },
   {
     code:     'SPECPOL',
@@ -76,6 +79,7 @@ export const COMMITTEES: Committee[] = [
     format: 'Single Delegation',
     chairperson: 'Syed Adeeb',
     description: 'Examines peacekeeping and political missions in supporting governance and stability. Delegates assess mandates, sovereignty challenges, and international responsibility while proposing solutions for inclusive and sustainable political transitions.',
+    registrationClosed: true,
   },
   {
     code:     'UNSC',
@@ -87,6 +91,7 @@ export const COMMITTEES: Committee[] = [
     format: 'Single Delegation',
     chairperson: 'Sukrit Sivaprasad',
     description: 'Addresses maritime sovereignty conflicts in the Aegean Sea. Delegates explore legal disputes, territorial claims, and international frameworks, aiming to draft enforceable policies that prevent escalation and maintain regional stability.',
+    registrationClosed: true,
   },
   {
     code:     'CCC',
@@ -98,6 +103,7 @@ export const COMMITTEES: Committee[] = [
     format: 'Single Delegation',
     chairperson: 'Thavanes Kanakaraj',
     description: 'A fast-paced crisis simulation where information evolves dynamically. Delegates must respond in real-time to unfolding situations, testing adaptability, strategic thinking, and crisis management skills.',
+    registrationClosed: false,
   },
   {
     code:     'IPC-J',
@@ -109,6 +115,7 @@ export const COMMITTEES: Committee[] = [
     format: 'Single Delegation',
     chairperson: 'Glenn Harel',
     description: 'Journalists act as observers and storytellers, reporting debates, investigating narratives, and shaping public perception. They translate complex discussions into accessible content while ensuring accountability and transparency.',
+    registrationClosed: false,
   },
   {
     code:     'IPC-P',
@@ -120,6 +127,7 @@ export const COMMITTEES: Committee[] = [
     format: 'Single Delegation',
     chairperson: 'Saayush Pal',
     description: 'Photographers document the conference visually, capturing key moments and emotions. Their work shapes how events are remembered and presented, combining storytelling with ethical and artistic responsibility.',
+    registrationClosed: false,
   },
 ] as const;
 

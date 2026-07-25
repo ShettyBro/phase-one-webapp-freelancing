@@ -57,6 +57,10 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
 
   const validate = (): string | null => {
     if (!committee) return 'Please select a committee.';
+    const selectedComm = COMMITTEES.find((c) => c.code === committee);
+    if (selectedComm?.registrationClosed) {
+      return `Registration for ${selectedComm.name} (${selectedComm.fullName}) is currently closed.`;
+    }
     if (!portfolio.trim()) return 'Please enter a portfolio preference.';
     for (let i = 0; i < count; i++) {
       const d = delegates[i];
@@ -159,7 +163,24 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
       {/* Committee + Portfolio */}
       <div className="glass gold-border rounded-md p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
         {isDouble ? (
-          <FormField as="select" label="Committee Preference" name="committee" required value={DOUBLE_COMMITTEE} onChange={() => {}} options={[{ value: DOUBLE_COMMITTEE, label: 'DISEC (Double Delegation)' }]} />
+          <div>
+            <FormField
+              as="select"
+              label="Committee Preference"
+              name="committee"
+              required
+              value={DOUBLE_COMMITTEE}
+              onChange={() => {}}
+              options={[
+                {
+                  value: DOUBLE_COMMITTEE,
+                  label: `DISEC (Double Delegation) — Registration Closed`,
+                  disabled: true,
+                },
+              ]}
+            />
+            <p className="font-sans text-xs text-red-400 mt-1">Registration for DISEC (Double Delegation) is currently closed.</p>
+          </div>
         ) : (
           <FormField
             as="select"
@@ -169,7 +190,11 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
             value={committee}
             onChange={setCommittee}
             placeholder="Select a committee"
-            options={SINGLE_COMMITTEES.map((c) => ({ value: c.code, label: `${c.name} — ${c.fullName}` }))}
+            options={SINGLE_COMMITTEES.map((c) => ({
+              value: c.code,
+              label: c.registrationClosed ? `${c.name} — ${c.fullName} (Registration Closed)` : `${c.name} — ${c.fullName}`,
+              disabled: c.registrationClosed,
+            }))}
           />
         )}
         <FormField label="Portfolio Preference" name="portfolio" required value={portfolio} onChange={setPortfolio} placeholder="e.g. country / role" />
