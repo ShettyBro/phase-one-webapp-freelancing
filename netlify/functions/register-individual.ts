@@ -12,6 +12,8 @@ interface IndividualPayload {
   delegationType?: 'SINGLE' | 'DOUBLE';
   committee?: string;
   portfolio?: string;
+  committee2?: string;
+  portfolio2?: string;
   delegates?: DelegateInput[];
   idProofs?: FileRef[];
   paymentMethod?: 'ONLINE' | 'OFFLINE';
@@ -155,6 +157,8 @@ export const handler: Handler = async (event) => {
         delegationType: body.delegationType,
         committee: body.committee,
         portfolio: body.portfolio.trim(),
+        committee2: body.committee2?.trim() || null,
+        portfolio2: body.portfolio2?.trim() || null,
         amountPayable,
         paymentMethod: body.paymentMethod,
         paymentReference: body.paymentMethod === 'ONLINE' ? body.paymentReference?.trim() : null,

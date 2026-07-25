@@ -387,8 +387,10 @@ const RegistrationDetail: React.FC<{ detail: any; regId: string; onDelete?: () =
       {detail.paymentMethod === 'ONLINE' && (
         <Row label="Payment Reference" value={detail.paymentReference} />
       )}
-      {detail.committee && <Row label="Committee" value={detail.committee} />}
-      {detail.portfolio && <Row label="Portfolio" value={detail.portfolio} />}
+      {detail.committee && <Row label="Committee Preference 1" value={detail.committee} />}
+      {detail.portfolio && <Row label="Portfolio Preference 1" value={detail.portfolio} />}
+      {detail.committee2 && <Row label="Committee Preference 2" value={detail.committee2} />}
+      {detail.portfolio2 && <Row label="Portfolio Preference 2" value={detail.portfolio2} />}
 
       {detail.type === 'INSTITUTIONAL' && (
         <div className="mt-4">

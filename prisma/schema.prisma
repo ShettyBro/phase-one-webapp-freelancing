@@ -96,9 +96,11 @@ model Registration {
   type           RegistrationType
   delegationType DelegationType?  // only for INDIVIDUAL
 
-  // Individual — committee + a single shared portfolio
+  // Individual — committee + portfolio preferences
   committee      String?
   portfolio      String?
+  committee2     String?
+  portfolio2     String?
 
   // Institutional — contacts + institution name
   institutionName String?

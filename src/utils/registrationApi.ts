@@ -40,6 +40,8 @@ export async function submitIndividual(payload: {
   delegationType: 'SINGLE' | 'DOUBLE';
   committee: string;
   portfolio: string;
+  committee2?: string;
+  portfolio2?: string;
   delegates: Array<Omit<DelegateForm, 'grade'> & { grade: number }>;
   idProofs: UploadedRef[];
   paymentMethod: 'ONLINE' | 'OFFLINE';

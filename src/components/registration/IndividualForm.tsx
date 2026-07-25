@@ -42,6 +42,8 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
   const [idProofs, setIdProofs] = useState<(UploadedRef | null)[]>(Array(count).fill(null));
   const [committee, setCommittee] = useState(isDouble ? DOUBLE_COMMITTEE : '');
   const [portfolio, setPortfolio] = useState('');
+  const [committee2, setCommittee2] = useState('');
+  const [portfolio2, setPortfolio2] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'OFFLINE'>('ONLINE');
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentProof, setPaymentProof] = useState<UploadedRef | null>(null);
@@ -56,12 +58,20 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
   };
 
   const validate = (): string | null => {
-    if (!committee) return 'Please select a committee.';
+    if (!committee) return 'Please select a committee preference (1st Choice).';
     const selectedComm = COMMITTEES.find((c) => c.code === committee);
     if (selectedComm?.registrationClosed) {
       return `Registration for ${selectedComm.name} (${selectedComm.fullName}) is currently closed.`;
     }
-    if (!portfolio.trim()) return 'Please enter a portfolio preference.';
+    if (!portfolio.trim()) return 'Please enter a portfolio preference for your 1st committee choice.';
+
+    if (committee2) {
+      const selectedComm2 = COMMITTEES.find((c) => c.code === committee2);
+      if (selectedComm2?.registrationClosed) {
+        return `Registration for 2nd preference ${selectedComm2.name} (${selectedComm2.fullName}) is currently closed.`;
+      }
+    }
+
     for (let i = 0; i < count; i++) {
       const d = delegates[i];
       const label = isDouble ? `Delegate ${i + 1}` : 'Delegate';
@@ -98,6 +108,8 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
         delegationType,
         committee,
         portfolio: portfolio.trim(),
+        committee2: committee2 || undefined,
+        portfolio2: portfolio2.trim() || undefined,
         delegates: delegates.map((d) => ({ ...d, grade: Number(d.grade) })),
         idProofs: idProofs as UploadedRef[],
         paymentMethod,
@@ -160,44 +172,69 @@ export const IndividualForm: React.FC<IndividualFormProps> = ({ delegationType, 
         </motion.div>
       ))}
 
-      {/* Committee + Portfolio */}
-      <div className="glass gold-border rounded-md p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
-        {isDouble ? (
-          <div>
+      {/* Committee + Portfolio Section */}
+      <div className="glass gold-border rounded-md p-6 flex flex-col gap-6">
+        <h3 className="font-serif-display text-xl text-comun-gold">Committee &amp; Portfolio Preferences</h3>
+
+        {/* Preference 1 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {isDouble ? (
+            <div>
+              <FormField
+                as="select"
+                label="Committee Preference 1"
+                name="committee"
+                required
+                value={DOUBLE_COMMITTEE}
+                onChange={() => {}}
+                options={[
+                  {
+                    value: DOUBLE_COMMITTEE,
+                    label: `DISEC (Double Delegation) — Registration Closed`,
+                    disabled: true,
+                  },
+                ]}
+              />
+              <p className="font-sans text-xs text-red-400 mt-1">Registration for DISEC (Double Delegation) is currently closed.</p>
+            </div>
+          ) : (
             <FormField
               as="select"
-              label="Committee Preference"
+              label="Committee Preference 1"
               name="committee"
               required
-              value={DOUBLE_COMMITTEE}
-              onChange={() => {}}
-              options={[
-                {
-                  value: DOUBLE_COMMITTEE,
-                  label: `DISEC (Double Delegation) — Registration Closed`,
-                  disabled: true,
-                },
-              ]}
+              value={committee}
+              onChange={setCommittee}
+              placeholder="Select 1st preference"
+              options={SINGLE_COMMITTEES.map((c) => ({
+                value: c.code,
+                label: c.registrationClosed ? `${c.name} — ${c.fullName} (Registration Closed)` : `${c.name} — ${c.fullName}`,
+                disabled: c.registrationClosed,
+              }))}
             />
-            <p className="font-sans text-xs text-red-400 mt-1">Registration for DISEC (Double Delegation) is currently closed.</p>
+          )}
+          <FormField label="Portfolio Preference 1" name="portfolio" required value={portfolio} onChange={setPortfolio} placeholder="e.g. country / role (1st choice)" />
+        </div>
+
+        {/* Preference 2 */}
+        {!isDouble && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-white/10">
+            <FormField
+              as="select"
+              label="Committee Preference 2"
+              name="committee2"
+              value={committee2}
+              onChange={setCommittee2}
+              placeholder="Select 2nd preference (optional)"
+              options={SINGLE_COMMITTEES.map((c) => ({
+                value: c.code,
+                label: c.registrationClosed ? `${c.name} — ${c.fullName} (Registration Closed)` : `${c.name} — ${c.fullName}`,
+                disabled: c.registrationClosed,
+              }))}
+            />
+            <FormField label="Portfolio Preference 2" name="portfolio2" value={portfolio2} onChange={setPortfolio2} placeholder="e.g. country / role (2nd choice)" />
           </div>
-        ) : (
-          <FormField
-            as="select"
-            label="Committee Preference"
-            name="committee"
-            required
-            value={committee}
-            onChange={setCommittee}
-            placeholder="Select a committee"
-            options={SINGLE_COMMITTEES.map((c) => ({
-              value: c.code,
-              label: c.registrationClosed ? `${c.name} — ${c.fullName} (Registration Closed)` : `${c.name} — ${c.fullName}`,
-              disabled: c.registrationClosed,
-            }))}
-          />
         )}
-        <FormField label="Portfolio Preference" name="portfolio" required value={portfolio} onChange={setPortfolio} placeholder="e.g. country / role" />
       </div>
 
       {/* Payment Section */}
