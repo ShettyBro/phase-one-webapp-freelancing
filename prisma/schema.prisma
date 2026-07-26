@@ -99,9 +99,8 @@ model Registration {
   // Individual — committee + portfolio preferences
   committee      String?
   portfolio      String?
-  // committee2 and portfolio2 pending: run `prisma db push` after setting DATABASE_URL
-  // committee2     String?
-  // portfolio2     String?
+  committee2     String?
+  portfolio2     String?
 
   // Institutional — contacts + institution name
   institutionName String?
