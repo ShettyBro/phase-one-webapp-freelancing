@@ -78,6 +78,8 @@ export interface RegistrationEmailData {
   registrationType: string; // e.g. "Individual — Single Delegation"
   committee?: string | null;
   portfolio?: string | null;
+  committee2?: string | null;
+  portfolio2?: string | null;
   delegationType?: 'SINGLE' | 'DOUBLE' | null;
   /** For double delegations — second delegate's name */
   delegate2Name?: string | null;
@@ -107,6 +109,8 @@ function buildHtml(data: RegistrationEmailData): string {
     ['Registration Type', esc(data.registrationType)],
     ...(data.committee ? [['Committee Preference', esc(data.committee)]] : []),
     ...(data.portfolio ? [['Portfolio Preference', esc(data.portfolio)]] : []),
+    ...(data.committee2 ? [['Committee Preference 2', esc(data.committee2)]] : []),
+    ...(data.portfolio2 ? [['Portfolio Preference 2', esc(data.portfolio2)]] : []),
     ...(isDouble && data.delegate2Name ? [['Delegate 2', esc(data.delegate2Name)]] : []),
     ...(isInstitutional && data.institutionName ? [['Institution', esc(data.institutionName)]] : []),
     ...(isInstitutional && data.headName ? [['Head Delegate', esc(data.headName)]] : []),

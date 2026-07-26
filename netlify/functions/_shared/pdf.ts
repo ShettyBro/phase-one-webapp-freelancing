@@ -61,6 +61,8 @@ export interface PdfRegistration {
   delegationType: 'SINGLE' | 'DOUBLE' | null;
   committee: string | null;
   portfolio: string | null;
+  committee2?: string | null;
+  portfolio2?: string | null;
   institutionName: string | null;
   teacherName: string | null;
   teacherEmail: string | null;
@@ -396,6 +398,8 @@ export async function buildRegistrationPdf(
   drawRow('Registration Type', typeLabel);
   if (reg.committee) drawRow('Committee Preference', reg.committee);
   if (reg.portfolio) drawRow('Portfolio Preference', reg.portfolio);
+  if (reg.committee2) drawRow('Committee Preference 2', reg.committee2);
+  if (reg.portfolio2) drawRow('Portfolio Preference 2', reg.portfolio2);
   drawRow('Submission Date',
     reg.submittedAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }));
 

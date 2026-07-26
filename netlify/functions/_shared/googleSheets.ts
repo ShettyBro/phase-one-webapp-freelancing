@@ -24,6 +24,8 @@ export interface IndividualSheetRow {
   delegationType: string;     // SINGLE | DOUBLE
   committee: string;
   portfolio: string;
+  committee2?: string;
+  portfolio2?: string;
   paymentMethod: string;      // ONLINE | OFFLINE
   paymentReference: string;   // UTR or blank
   hasPaymentProof: boolean;
@@ -124,7 +126,7 @@ async function ensureSheet(client: JWT, title: string, headers: string[]): Promi
 // ─── Individual Registrations ─────────────────────────────────────────────────
 
 const INDIVIDUAL_HEADERS = [
-  'Application ID', 'Submitted At', 'Delegation Type', 'Committee', 'Portfolio',
+  'Application ID', 'Submitted At', 'Delegation Type', 'Committee 1', 'Portfolio 1', 'Committee 2', 'Portfolio 2',
   'Payment Method', 'Payment Reference', 'Has Payment Proof', 'Amount Payable (₹)',
   // Delegate 1
   'D1 Name', 'D1 Email', 'D1 Phone', 'D1 Grade', 'D1 Nationality', 'D1 Experience', 'D1 Institution',
@@ -149,6 +151,8 @@ export async function appendIndividualRow(row: IndividualSheetRow): Promise<void
       row.delegationType,
       row.committee,
       row.portfolio,
+      row.committee2 ?? '',
+      row.portfolio2 ?? '',
       row.paymentMethod,
       row.paymentReference,
       row.hasPaymentProof ? 'Yes' : 'No',
