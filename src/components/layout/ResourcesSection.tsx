@@ -101,6 +101,47 @@ const DelegateMatrixCard: React.FC<{ index: number }> = ({ index }) => (
   </motion.a>
 );
 
+// ─── Permanent Background Guides card (always shown) ─────────────────────────
+const BackgroundGuidesCard: React.FC<{ index: number }> = ({ index }) => (
+  <motion.a
+    href="https://drive.google.com/drive/folders/1nOBQic1OclLwHvJ5AWOapcPpmSmplnas?usp=sharing"
+    target="_blank"
+    rel="noopener noreferrer"
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '-60px' }}
+    transition={{ duration: 0.6, delay: 0.07 * (index % 3), ease: [0.22, 1, 0.36, 1] }}
+    whileHover={{ y: -4 }}
+    className="group relative overflow-hidden flex flex-col gap-4 p-6 border border-comun-gold/20 hover:border-comun-gold/50 bg-comun-gold/5 hover:bg-comun-gold/8 rounded-md transition-all duration-300 cursor-pointer"
+    style={{ backdropFilter: 'blur(8px)' }}
+  >
+    <div className="absolute inset-0 bg-comun-gold/0 group-hover:bg-comun-gold/4 transition-colors duration-300 pointer-events-none rounded-md" />
+    <div className="relative flex items-start justify-between gap-3">
+      <span className="text-3xl">📚</span>
+      <span className="font-sans text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-sm">
+        Available
+      </span>
+    </div>
+    <div className="relative flex flex-col gap-2 flex-1">
+      <h3 className="font-sans font-semibold text-base text-comun-white group-hover:text-comun-gold transition-colors duration-300">
+        Background Guides
+      </h3>
+      <p className="font-sans text-sm text-comun-muted leading-relaxed">
+        Official committee background guides published by the Secretariat. Study these before the conference to prepare your country positions.
+      </p>
+      <div className="flex items-center gap-1.5 mt-auto pt-2">
+        <span className="font-sans text-[10px] text-comun-gold/60 border border-comun-gold/15 px-2 py-0.5 rounded-sm">Google Drive</span>
+      </div>
+    </div>
+    <div className="relative flex items-center gap-2 pt-1">
+      <ExternalLink className="w-3.5 h-3.5 text-comun-gold/60 group-hover:text-comun-gold transition-colors" />
+      <span className="font-sans text-xs font-medium text-comun-gold/70 group-hover:text-comun-gold tracking-widest uppercase transition-colors">
+        View Guides
+      </span>
+    </div>
+  </motion.a>
+);
+
 // ─── Permanent Brochure download card (always shown) ───────────────────────
 const BrochureCard: React.FC<{ index: number }> = ({ index }) => (
   <motion.a
@@ -250,7 +291,8 @@ const ResourcesSection: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     <UnoLinkCard index={0} />
                     <DelegateMatrixCard index={1} />
-                    <BrochureCard index={2} />
+                    <BackgroundGuidesCard index={2} />
+                    <BrochureCard index={3} />
                   </div>
                 </div>
               </div>
@@ -259,39 +301,12 @@ const ResourcesSection: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 <UnoLinkCard index={0} />
                 <DelegateMatrixCard index={1} />
-                <BrochureCard index={2} />
+                <BackgroundGuidesCard index={2} />
+                <BrochureCard index={3} />
               </div>
             )}
 
-            {/* Notification banner — only shown when nothing is published yet */}
-            {!hasPublished && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="mt-12 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-md"
-                style={{
-                  background: 'rgba(255,208,0,0.05)',
-                  border: '1px solid rgba(255,208,0,0.15)',
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🔔</span>
-                  <p className="font-sans text-sm text-comun-muted text-center sm:text-left">
-                    Resources will be released{' '}
-                    <span className="text-comun-gold">4 weeks before the conference.</span>{' '}
-                    Check back here or follow our official channels.
-                  </p>
-                </div>
-                <button
-                  onClick={() => smoothScrollTo('#contact')}
-                  className="btn-secondary text-xs px-5 py-2.5 flex-shrink-0"
-                >
-                  Get Notified
-                </button>
-              </motion.div>
-            )}
+
           </>
         )}
       </div>
